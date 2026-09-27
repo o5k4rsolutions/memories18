@@ -350,6 +350,7 @@
 
                 const logoImage = await pdfDoc.embedPng(logoRes);
                 
+                // Format A4 (595.28 x 841.89 pt)
                 const page = pdfDoc.addPage([595.28, 841.89]);
                 const { width, height } = page.getSize();
 
@@ -388,10 +389,10 @@
                     borderWidth: 0.75,
                 });
 
-                // 1. Logo na górze
+                // 1. Logo na górze (bez napisu pod spodem)
                 const logoDims = logoImage.scale(0.32);
                 const logoX = (width - logoDims.width) / 2;
-                const logoY = cardY + cardHeight - 95;
+                const logoY = cardY + cardHeight - 85;
                 page.drawImage(logoImage, {
                     x: logoX,
                     y: logoY,
@@ -399,24 +400,11 @@
                     height: logoDims.height,
                 });
 
-                // 2. Podtytuł pod logo („Wspomnienia, które zostają.”)
-                const subText = "Wspomnienia, które zostają.";
-                const subFontSize = 10.5;
-                const subWidth = fontLight.widthOfTextAtSize(subText, subFontSize);
-                page.drawText(subText, {
-                    x: (width - subWidth) / 2,
-                    y: logoY - 22,
-                    size: subFontSize,
-                    font: fontLight,
-                    color: rgb(0.40, 0.39, 0.37),
-                });
-
-                // 3. Tytuł imprezy (wielolinijkowy, wycentrowany, obsługujący polskie znaki)
+                // 2. Tytuł imprezy (wielolinijkowy, wycentrowany, obsługujący polskie znaki)
                 const titleText = (activeEventForPDF.title || "").toUpperCase();
-                const titleFontSize = 23;
+                const titleFontSize = 24;
                 const maxLineWidth = cardWidth - 60;
                 
-                // Inteligentne dzielenie tytułu na wiersze, jeśli jest długi
                 const words = titleText.split(' ');
                 let lines = [];
                 let currentLine = '';
@@ -433,7 +421,7 @@
                 });
                 if (currentLine) lines.push(currentLine);
 
-                let currentTitleY = logoY - 65;
+                let currentTitleY = logoY - 45;
                 lines.forEach((line, index) => {
                     const lineWidth = fontBlack.widthOfTextAtSize(line, titleFontSize);
                     page.drawText(line, {
@@ -448,7 +436,7 @@
                 const totalTitleHeight = lines.length * (titleFontSize + 6);
                 const afterTitleY = currentTitleY - totalTitleHeight - 12;
 
-                // 4. Instrukcja pod tytułem („Zeskanuj kod QR, aby dodać zdjęcia z imprezy!”)
+                // 3. Instrukcja pod tytułem („Zeskanuj kod QR, aby dodać zdjęcia z imprezy!”)
                 const instructionText = "Zeskanuj kod QR, aby dodać zdjęcia z imprezy!";
                 const instructionFontSize = 10.5;
                 const instructionWidth = fontMedium.widthOfTextAtSize(instructionText, instructionFontSize);
@@ -460,7 +448,7 @@
                     color: rgb(0.35, 0.34, 0.32),
                 });
 
-                // 5. Kod QR na środku
+                // 4. Kod QR na środku
                 const tempDiv = document.createElement('div');
                 new QRCode(tempDiv, {
                     text: activeEventForPDF.guestLink,
@@ -473,6 +461,8 @@
                 
                 await new Promise(resolve => setTimeout(resolve, 50));
                 const qrCanvas = tempDiv.querySelector('canvas');
+                let qrBottomY = afterTitleY - 280;
+
                 if (qrCanvas) {
                     const qrDataUri = qrCanvas.toDataURL('image/png');
                     const qrImageBytes = await fetch(qrDataUri).then(res => res.arrayBuffer());
@@ -480,7 +470,7 @@
 
                     const qrSize = 250;
                     const qrX = (width - qrSize) / 2;
-                    const qrY = afterTitleY - 280;
+                    const qrY = afterTitleY - 265;
 
                     page.drawImage(qrImage, {
                         x: qrX,
@@ -488,44 +478,48 @@
                         width: qrSize,
                         height: qrSize,
                     });
+
+                    qrBottomY = qrY;
                 }
 
-                const qrBottomY = afterTitleY - 280;
-
-                // 6. Link tekstowy pod kodem QR
+                // 5. Link tekstowy pod kodem QR
                 const linkText = activeEventForPDF.guestLink;
                 const linkFontSize = 8;
                 const linkWidth = fontLight.widthOfTextAtSize(linkText, linkFontSize);
                 page.drawText(linkText, {
                     x: (width - linkWidth) / 2,
-                    y: qrBottomY - 20,
+                    y: qrBottomY - 18,
                     size: linkFontSize,
                     font: fontLight,
                     color: rgb(0.50, 0.49, 0.47),
                 });
 
-                // 7. Sekcja „DODAJ KADR”
+                // 6. Sekcja dolna: DODAJ KADR oraz slogan (idealnie wycentrowane pod linkiem)
                 const actionText = "DODAJ KADR";
                 const actionFontSize = 26;
                 const actionWidth = fontBlack.widthOfTextAtSize(actionText, actionFontSize);
-                page.drawText(actionText, {
-                    x: (width - actionWidth) / 2,
-                    y: cardY + 55,
-                    size: actionFontSize,
-                    font: fontBlack,
-                    color: rgb(0.12, 0.11, 0.10),
-                });
-
-                // 8. Slogan na samej górze / dole ramki („Stwórzmy razem piękne wspomnienia.”)
+                
                 const footerText = "Stwórzmy razem piękne wspomnienia.";
                 const footerFontSize = 10;
                 const footerWidth = fontMedium.widthOfTextAtSize(footerText, footerFontSize);
+
+                // Rozmieszczenie elementów dolnych symetrycznie nad dolną krawędzią ramki
+                const baseBottomY = cardY + 35;
+                
                 page.drawText(footerText, {
                     x: (width - footerWidth) / 2,
-                    y: cardY + 30,
+                    y: baseBottomY,
                     size: footerFontSize,
                     font: fontMedium,
                     color: rgb(0.45, 0.44, 0.42),
+                });
+
+                page.drawText(actionText, {
+                    x: (width - actionWidth) / 2,
+                    y: baseBottomY + 22,
+                    size: actionFontSize,
+                    font: fontBlack,
+                    color: rgb(0.12, 0.11, 0.10),
                 });
 
                 // Zapis pliku PDF
