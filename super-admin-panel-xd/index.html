@@ -325,20 +325,6 @@
             link.click();
         }
 
-        function sanitizeText(str) {
-            if (!str) return '';
-            return str
-                .replace(/ą/g, 'a').replace(/Ą/g, 'A')
-                .replace(/ć/g, 'c').replace(/Ć/g, 'C')
-                .replace(/ę/g, 'e').replace(/Ę/g, 'E')
-                .replace(/ł/g, 'l').replace(/Ł/g, 'L')
-                .replace(/ń/g, 'n').replace(/Ń/g, 'N')
-                .replace(/ó/g, 'o').replace(/Ó/g, 'O')
-                .replace(/ś/g, 's').replace(/Ś/g, 'S')
-                .replace(/ź/g, 'z').replace(/Ź/g, 'Z')
-                .replace(/ż/g, 'z').replace(/Ż/g, 'Z');
-        }
-
         async function generatePDF() {
             if (!activeEventForPDF) return;
 
@@ -349,7 +335,7 @@
                 // Rejestracja fontkit wymagana do osadzania zewnętrznych czcionek TTF
                 pdfDoc.registerFontkit(fontkit);
 
-                // Pobieranie dedykowanych czcionek Engram Warsaw
+                // Pobieranie dedykowanych czcionek Engram Warsaw oraz logo
                 const [blackFontBytes, lightFontBytes, mediumFontBytes, logoRes] = await Promise.all([
                     fetch('https://lifeinwarsaw.vercel.app/liw-content/engram-warsaw-black.ttf').then(res => res.arrayBuffer()),
                     fetch('https://lifeinwarsaw.vercel.app/liw-content/engram-warsaw-light.ttf').then(res => res.arrayBuffer()),
@@ -357,7 +343,7 @@
                     fetch('https://memories18.pages.dev/files-content/memories18_logo.png').then(res => res.arrayBuffer())
                 ]);
 
-                // Osadzanie czcionek w dokumencie PDF
+                // Osadzanie czcionek z obsługą polskich znaków
                 const fontBlack = await pdfDoc.embedFont(blackFontBytes);
                 const fontLight = await pdfDoc.embedFont(lightFontBytes);
                 const fontMedium = await pdfDoc.embedFont(mediumFontBytes);
@@ -376,27 +362,36 @@
                     color: rgb(0.96, 0.96, 0.95),
                 });
 
-                const cardWidth = 470;
-                const cardHeight = 720;
+                const cardWidth = 510;
+                const cardHeight = 770;
                 const cardX = (width - cardWidth) / 2;
                 const cardY = (height - cardHeight) / 2;
 
-                // Kartka / ramka wizytówki (zwaras struktura, mniejsze odstępy)
+                // Podwójna dekoracyjna ramka dokładnie jak na wzorze ze zdjęcia
                 page.drawRectangle({
                     x: cardX,
                     y: cardY,
                     width: cardWidth,
                     height: cardHeight,
                     color: rgb(1, 1, 1),
-                    borderColor: rgb(0.88, 0.87, 0.85),
-                    borderWidth: 1,
+                    borderColor: rgb(0.85, 0.83, 0.80),
+                    borderWidth: 1.5,
                 });
 
-                // Zwarty układ z góry karty:
-                // 1. Logo
-                const logoDims = logoImage.scale(0.28);
+                page.drawRectangle({
+                    x: cardX + 6,
+                    y: cardY + 6,
+                    width: cardWidth - 12,
+                    height: cardHeight - 12,
+                    color: rgb(1, 1, 1),
+                    borderColor: rgb(0.90, 0.88, 0.85),
+                    borderWidth: 0.75,
+                });
+
+                // 1. Logo na górze
+                const logoDims = logoImage.scale(0.32);
                 const logoX = (width - logoDims.width) / 2;
-                const logoY = cardY + cardHeight - 85;
+                const logoY = cardY + cardHeight - 95;
                 page.drawImage(logoImage, {
                     x: logoX,
                     y: logoY,
@@ -404,36 +399,73 @@
                     height: logoDims.height,
                 });
 
-                // 2. Większy, bardziej wyrazisty tytuł imprezy
-                const titleText = sanitizeText(activeEventForPDF.title).toUpperCase();
-                const titleFontSize = 22; // Powiększony tytuł
-                const titleWidth = fontBlack.widthOfTextAtSize(titleText, titleFontSize);
-                page.drawText(titleText, {
-                    x: (width - titleWidth) / 2,
-                    y: logoY - 32,
-                    size: titleFontSize,
-                    font: fontBlack,
-                    color: rgb(0.12, 0.11, 0.10),
-                });
-
-                // 3. Podpis / instrukcja pod tytułem
-                const subText = sanitizeText("Zeskanuj kod, aby dodać zdjęcia z imprezy!");
-                const subFontSize = 10;
+                // 2. Podtytuł pod logo („Wspomnienia, które zostają.”)
+                const subText = "Wspomnienia, które zostają.";
+                const subFontSize = 10.5;
                 const subWidth = fontLight.widthOfTextAtSize(subText, subFontSize);
                 page.drawText(subText, {
                     x: (width - subWidth) / 2,
-                    y: logoY - 50,
+                    y: logoY - 22,
                     size: subFontSize,
                     font: fontLight,
-                    color: rgb(0.45, 0.44, 0.42),
+                    color: rgb(0.40, 0.39, 0.37),
                 });
 
-                // 4. Generowanie kodu QR i osadzenie na środku
+                // 3. Tytuł imprezy (wielolinijkowy, wycentrowany, obsługujący polskie znaki)
+                const titleText = (activeEventForPDF.title || "").toUpperCase();
+                const titleFontSize = 23;
+                const maxLineWidth = cardWidth - 60;
+                
+                // Inteligentne dzielenie tytułu na wiersze, jeśli jest długi
+                const words = titleText.split(' ');
+                let lines = [];
+                let currentLine = '';
+
+                words.forEach(word => {
+                    const testLine = currentLine ? `${currentLine} ${word}` : word;
+                    const testWidth = fontBlack.widthOfTextAtSize(testLine, titleFontSize);
+                    if (testWidth > maxLineWidth) {
+                        lines.push(currentLine);
+                        currentLine = word;
+                    } else {
+                        currentLine = testLine;
+                    }
+                });
+                if (currentLine) lines.push(currentLine);
+
+                let currentTitleY = logoY - 65;
+                lines.forEach((line, index) => {
+                    const lineWidth = fontBlack.widthOfTextAtSize(line, titleFontSize);
+                    page.drawText(line, {
+                        x: (width - lineWidth) / 2,
+                        y: currentTitleY - (index * (titleFontSize + 6)),
+                        size: titleFontSize,
+                        font: fontBlack,
+                        color: rgb(0.12, 0.11, 0.10),
+                    });
+                });
+
+                const totalTitleHeight = lines.length * (titleFontSize + 6);
+                const afterTitleY = currentTitleY - totalTitleHeight - 12;
+
+                // 4. Instrukcja pod tytułem („Zeskanuj kod QR, aby dodać zdjęcia z imprezy!”)
+                const instructionText = "Zeskanuj kod QR, aby dodać zdjęcia z imprezy!";
+                const instructionFontSize = 10.5;
+                const instructionWidth = fontMedium.widthOfTextAtSize(instructionText, instructionFontSize);
+                page.drawText(instructionText, {
+                    x: (width - instructionWidth) / 2,
+                    y: afterTitleY,
+                    size: instructionFontSize,
+                    font: fontMedium,
+                    color: rgb(0.35, 0.34, 0.32),
+                });
+
+                // 5. Kod QR na środku
                 const tempDiv = document.createElement('div');
                 new QRCode(tempDiv, {
                     text: activeEventForPDF.guestLink,
-                    width: 300,
-                    height: 300,
+                    width: 320,
+                    height: 320,
                     colorDark: "#1c1917",
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.H
@@ -446,9 +478,9 @@
                     const qrImageBytes = await fetch(qrDataUri).then(res => res.arrayBuffer());
                     const qrImage = await pdfDoc.embedPng(qrImageBytes);
 
-                    const qrSize = 230;
+                    const qrSize = 250;
                     const qrX = (width - qrSize) / 2;
-                    const qrY = cardY + 185;
+                    const qrY = afterTitleY - 280;
 
                     page.drawImage(qrImage, {
                         x: qrX,
@@ -458,43 +490,45 @@
                     });
                 }
 
-                // 5. Link tekstowy pod QR
+                const qrBottomY = afterTitleY - 280;
+
+                // 6. Link tekstowy pod kodem QR
                 const linkText = activeEventForPDF.guestLink;
-                const linkFontSize = 8.5;
+                const linkFontSize = 8;
                 const linkWidth = fontLight.widthOfTextAtSize(linkText, linkFontSize);
                 page.drawText(linkText, {
                     x: (width - linkWidth) / 2,
-                    y: cardY + 160,
+                    y: qrBottomY - 20,
                     size: linkFontSize,
                     font: fontLight,
-                    color: rgb(0.40, 0.40, 0.40),
+                    color: rgb(0.50, 0.49, 0.47),
                 });
 
-                // 6. Sekcja dolna: wyraziste call-to-action
-                const bigActionText = "DODAJ KADR";
-                const bigFontSize = 28;
-                const bigActionWidth = fontBlack.widthOfTextAtSize(bigActionText, bigFontSize);
-                page.drawText(bigActionText, {
-                    x: (width - bigActionWidth) / 2,
-                    y: cardY + 80,
-                    size: bigFontSize,
+                // 7. Sekcja „DODAJ KADR”
+                const actionText = "DODAJ KADR";
+                const actionFontSize = 26;
+                const actionWidth = fontBlack.widthOfTextAtSize(actionText, actionFontSize);
+                page.drawText(actionText, {
+                    x: (width - actionWidth) / 2,
+                    y: cardY + 55,
+                    size: actionFontSize,
                     font: fontBlack,
                     color: rgb(0.12, 0.11, 0.10),
                 });
 
-                // 7. Slogan na samym dole
-                const hintText = sanitizeText("Uwiecznij te chwile razem z nami ✨");
-                const hintFontSize = 10;
-                const hintWidth = fontMedium.widthOfTextAtSize(hintText, hintFontSize);
-                page.drawText(hintText, {
-                    x: (width - hintWidth) / 2,
-                    y: cardY + 55,
-                    size: hintFontSize,
+                // 8. Slogan na samej górze / dole ramki („Stwórzmy razem piękne wspomnienia.”)
+                const footerText = "Stwórzmy razem piękne wspomnienia.";
+                const footerFontSize = 10;
+                const footerWidth = fontMedium.widthOfTextAtSize(footerText, footerFontSize);
+                page.drawText(footerText, {
+                    x: (width - footerWidth) / 2,
+                    y: cardY + 30,
+                    size: footerFontSize,
                     font: fontMedium,
-                    color: rgb(0.55, 0.54, 0.52),
+                    color: rgb(0.45, 0.44, 0.42),
                 });
 
-                // Zapisz dokument
+                // Zapis pliku PDF
                 const pdfBytes = await pdfDoc.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 const link = document.createElement('a');
