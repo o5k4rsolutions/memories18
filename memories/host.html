@@ -7,7 +7,7 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Supabase Client -->
@@ -19,106 +19,100 @@
                     fontFamily: {
                         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
                         heading: ['Outfit', 'sans-serif'],
-                        loubag: ['Cinzel', 'serif'],
-                        gliker: ['Outfit', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#fdf4f8',
-                            100: '#fbe8f2',
-                            500: '#d946ef',
-                            600: '#c026d3',
-                            700: '#a21caf',
-                            900: '#701a75',
-                        }
+                        handwriting: ['Caveat', 'cursive'],
                     }
                 }
             }
         }
     </script>
     <style>
-        .font-loubag { font-family: 'Cinzel', serif; letter-spacing: -0.02em; }
-        .font-gliker { font-family: 'Outfit', sans-serif; font-weight: 800; }
+        .polaroid-shadow {
+            box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.08), 0 3px 5px -2px rgba(0, 0, 0, 0.04);
+        }
     </style>
 </head>
-<body class="bg-[#faf8fc] text-slate-800 font-sans antialiased min-h-screen flex flex-col justify-between">
+<body class="bg-[#f6f5f2] text-stone-800 font-sans antialiased min-h-screen flex flex-col justify-between selection:bg-amber-200">
 
-    <header class="sticky top-0 z-50 backdrop-blur-md bg-white/90 border-b border-slate-200/60 shadow-xs">
-        <div class="max-w-7xl mx-auto px-4 h-24 flex items-center justify-between">
+    <!-- Elegancki nagłówek z powiększonym i wyśrodkowanym logo -->
+    <header class="py-6 px-6 max-w-7xl mx-auto w-full flex items-center justify-between relative">
+        <div class="w-24"></div> <!-- Pusty element dla zachowania idealnego wyśrodkowania logo -->
+        <div class="absolute left-1/2 -translate-x-1/2">
             <img src="https://memories18.pages.dev/files-content/memories18_logo.svg" alt="Memories18" class="h-14 w-auto object-contain">
-            <div id="host-header-info" class="hidden text-sm font-semibold text-slate-700 flex items-center gap-3">
-                <span id="nav-event-title" class="text-brand-600 font-gliker">Impreza</span>
-                <button onclick="logoutHost()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-xl transition-colors">Wyloguj</button>
-            </div>
+        </div>
+        <div id="host-header-info" class="hidden items-center gap-3 z-10">
+            <span id="nav-event-title" class="font-heading font-semibold text-sm text-stone-700 hidden sm:inline">Impreza</span>
+            <button onclick="logoutHost()" class="text-xs bg-stone-200/70 hover:bg-stone-300/70 text-stone-700 font-medium px-3.5 py-2 rounded-xl transition-colors">Wyloguj</button>
         </div>
     </header>
 
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+    <main class="flex-grow max-w-7xl mx-auto px-5 py-8 w-full flex flex-col justify-center">
         
-        <!-- Login Card -->
-        <div id="login-view" class="max-w-md mx-auto bg-white border border-slate-200/80 rounded-3xl p-8 shadow-xl text-center">
-            <div class="w-16 h-16 bg-brand-500/10 text-brand-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">
+        <!-- Ekran logowania -->
+        <div id="login-view" class="max-w-md mx-auto bg-white border border-stone-200/80 rounded-2xl p-8 shadow-sm text-center w-full">
+            <div class="w-12 h-12 bg-stone-100 text-stone-700 rounded-full flex items-center justify-center text-lg mx-auto mb-4">
                 <i class="fa-solid fa-lock"></i>
             </div>
-            <h1 class="font-gliker text-2xl text-slate-900 mb-2">Panel Solenizanta</h1>
-            <p class="text-slate-500 text-sm mb-6">Wpisz hasło otrzymane od organizatora Memories18, aby zobaczyć wszystkie zdjęcia z imprezy.</p>
+            <h1 class="font-heading font-bold text-xl text-stone-900 mb-2">Panel Solenizanta</h1>
+            <p class="text-stone-500 text-sm mb-6 leading-relaxed">Wpisz hasło otrzymane od organizatora, aby wyświetlić galerię wspomnień.</p>
             
-            <form onsubmit="handleHostLogin(event)" class="space-y-4">
-                <input type="password" id="host-password-input" required placeholder="Wpisz hasło..." class="w-full bg-[#faf8fc] border border-slate-200 rounded-xl px-4 py-3 text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono">
-                <button type="submit" class="w-full bg-gradient-to-r from-brand-600 to-pink-600 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 transition-all font-gliker text-sm">
+            <form onsubmit="handleHostLogin(event)" class="space-y-3">
+                <input type="password" id="host-password-input" required placeholder="Wpisz hasło..." class="w-full bg-stone-50/50 border border-stone-200 rounded-xl px-4 py-3 text-sm text-center text-stone-800 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors font-mono">
+                <button type="submit" class="w-full bg-stone-900 hover:bg-stone-800 text-white font-heading font-semibold py-3 px-6 rounded-xl shadow-sm transition-all text-sm">
                     Zaloguj się
                 </button>
             </form>
-            <p id="login-error" class="text-red-500 text-xs mt-3 hidden">Nieprawidłowe hasło!</p>
+            <p id="login-error" class="text-rose-600 text-xs mt-3 hidden font-medium">Nieprawidłowe hasło!</p>
         </div>
 
-        <!-- Gallery View -->
+        <!-- Galeria zdjęć -->
         <div id="gallery-view" class="hidden space-y-8">
-            <div class="bg-gradient-to-r from-brand-600 to-pink-600 rounded-3xl p-8 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div class="bg-white border border-stone-200/80 rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
                 <div>
-                    <span class="bg-white/20 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Galeria Solenizanta</span>
-                    <h1 id="gallery-title" class="font-gliker text-3xl mt-2">Wspomnienia z imprezy</h1>
-                    <p class="text-white/80 text-sm mt-1">Wszystkie zdjęcia zrobione i wrzucone przez Twoich gości w jednym miejscu.</p>
+                    <span class="text-xs tracking-widest uppercase font-heading font-semibold text-stone-400 block mb-1">Galeria na żywo</span>
+                    <h1 id="gallery-title" class="font-heading font-bold text-2xl sm:text-3xl text-stone-900">Wspomnienia z imprezy</h1>
                 </div>
-                <div class="flex items-center gap-4">
-                    <button onclick="loadPhotos()" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 p-3 rounded-2xl backdrop-blur-md transition-all" title="Odśwież zdjęcia">
-                        <i class="fa-solid fa-rotate"></i>
-                    </button>
-                    <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-6 py-4 text-center">
-                        <span id="photo-count" class="font-gliker text-3xl block">0</span>
-                        <span class="text-xs text-white/80 uppercase font-mono">Zdjęć</span>
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+                    <div class="bg-stone-50 border border-stone-200/80 rounded-xl px-4 py-2.5 text-center">
+                        <span id="photo-count" class="font-heading font-bold text-xl text-stone-900 block leading-tight">0</span>
+                        <span class="text-[10px] text-stone-400 uppercase tracking-wider font-semibold">Zdjęć</span>
                     </div>
+                    <button onclick="loadPhotos()" class="bg-stone-100 hover:bg-stone-200 text-stone-700 p-3 rounded-xl transition-all" title="Odśwież zdjęcia">
+                        <i class="fa-solid fa-rotate text-sm"></i>
+                    </button>
                 </div>
             </div>
 
+            <!-- Siatka zdjęć w stylu polaroidów -->
             <div id="photos-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <!-- Dynamic Photos inserted here -->
+                <!-- Zdjęcia wstrzykiwane dynamicznie -->
             </div>
         </div>
     </main>
 
-    <!-- Lightbox Modal for Photo viewing -->
-    <div id="lightbox" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4" onclick="closeLightbox()">
-        <div class="relative max-w-4xl max-h-[90vh] w-full flex flex-col items-center" onclick="event.stopPropagation()">
-            <button onclick="closeLightbox()" class="absolute -top-12 right-0 text-white text-2xl hover:text-brand-400 transition-colors">
+    <!-- Lightbox (Powiększenie zdjęcia) -->
+    <div id="lightbox" class="fixed inset-0 z-50 bg-stone-900/80 backdrop-blur-xs hidden flex items-center justify-center p-4" onclick="closeLightbox()">
+        <div class="relative max-w-3xl max-h-[90vh] w-full flex flex-col items-center bg-white p-4 sm:p-6 rounded-2xl shadow-2xl" onclick="event.stopPropagation()">
+            <button onclick="closeLightbox()" class="absolute top-4 right-4 text-stone-400 hover:text-stone-900 text-xl transition-colors w-8 h-8 flex items-center justify-center bg-stone-100 rounded-full">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-            <img id="lightbox-img" src="" alt="Powiększenie" class="max-h-[75vh] max-w-full rounded-2xl object-contain shadow-2xl bg-black">
-            <div class="mt-4 text-center text-white">
-                <p id="lightbox-author" class="font-loubag font-bold text-lg"></p>
-                <p id="lightbox-date" class="text-xs text-white/60 font-mono mt-1"></p>
-                <a id="lightbox-download" href="" target="_blank" download class="mt-3 inline-flex items-center gap-2 bg-white text-slate-900 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all">
-                    <i class="fa-solid fa-download text-brand-600"></i> Pobierz oryginał
+            <div class="w-full max-h-[65vh] bg-stone-100 rounded-xl overflow-hidden flex items-center justify-center mb-4">
+                <img id="lightbox-img" src="" alt="Powiększenie" class="max-h-[65vh] max-w-full object-contain">
+            </div>
+            <div class="w-full flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-stone-100 pt-4">
+                <div>
+                    <p id="lightbox-author" class="font-handwriting text-3xl text-stone-800 text-center sm:text-left"></p>
+                    <p id="lightbox-date" class="text-xs text-stone-400 font-mono text-center sm:text-left mt-0.5"></p>
+                </div>
+                <a id="lightbox-download" href="" target="_blank" download class="w-full sm:w-auto bg-stone-900 hover:bg-stone-800 text-white px-4 py-2.5 rounded-xl text-xs font-heading font-semibold transition-all text-center">
+                    <i class="fa-solid fa-download mr-1.5"></i> Pobierz oryginał
                 </a>
             </div>
         </div>
     </div>
 
-    <footer class="bg-white border-t border-slate-200/80 py-8 text-slate-500 text-sm mt-12">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <img src="https://memories18.pages.dev/files-content/logo_rakso_szerokie.svg" alt="RAKSO" class="h-8 w-auto object-contain mx-auto mb-2">
-            <p class="text-xs text-slate-400">Memories18 &copy; 2026 RAKSO Web Development.</p>
-        </div>
+    <!-- Stopka -->
+    <footer class="py-6 text-stone-400 text-xs text-center mt-12">
+        <p>Memories18 &copy; 2026 RAKSO Web Development</p>
     </footer>
 
     <script>
@@ -141,13 +135,13 @@
             }
 
             if (!eventId) {
-                document.getElementById('login-view').innerHTML = `<p class="text-red-500 font-bold">Brak ID imprezy w adresie URL!</p>`;
+                document.getElementById('login-view').innerHTML = `<p class="text-stone-800 font-medium text-sm">Brak ID imprezy w adresie URL.</p>`;
                 return;
             }
 
             const { data, error } = await supabaseClient.from('memories_events').select('*').eq('id', eventId).single();
             if (error || !data) {
-                document.getElementById('login-view').innerHTML = `<p class="text-red-500 font-bold">Nie znaleziono wydarzenia w bazie.</p>`;
+                document.getElementById('login-view').innerHTML = `<p class="text-stone-800 font-medium text-sm">Nie znaleziono wydarzenia w bazie.</p>`;
                 return;
             }
             currentEventData = data;
@@ -178,6 +172,7 @@
             document.getElementById('login-view').classList.add('hidden');
             document.getElementById('gallery-view').classList.remove('hidden');
             document.getElementById('host-header-info').classList.remove('hidden');
+            document.getElementById('host-header-info').classList.add('flex');
             document.getElementById('nav-event-title').textContent = currentEventData.title;
             document.getElementById('gallery-title').textContent = currentEventData.title;
 
@@ -200,25 +195,29 @@
             const gridEl = document.getElementById('photos-grid');
 
             if (data.length === 0) {
-                gridEl.innerHTML = `<div class="col-span-full text-center py-16 text-slate-400 bg-white rounded-3xl border border-slate-200"><i class="fa-regular fa-images text-4xl mb-3 block"></i>Brak zdjęć w tej chwili. Goście wkrótce coś wrzucą!</div>`;
+                gridEl.innerHTML = `
+                    <div class="col-span-full text-center py-16 text-stone-400 bg-white rounded-2xl border border-stone-200/80">
+                        <i class="fa-regular fa-images text-3xl mb-2 block text-stone-300"></i>
+                        <p class="text-sm font-medium text-stone-600">Brak zdjęć w tej chwili.</p>
+                        <p class="text-xs text-stone-400 mt-1">Goście wkrótce dodadzą pierwsze wspomnienia!</p>
+                    </div>`;
                 return;
             }
 
             let html = '';
-            data.forEach(photo => {
+            data.forEach((photo, index) => {
                 const dateStr = new Date(photo.created_at).toLocaleString('pl-PL');
+                const rotations = ['rotate-1', '-rotate-1', 'rotate-2', '-rotate-2', 'rotate-0'];
+                const randomRot = rotations[index % rotations.length];
+
                 html += `
-                    <div class="bg-white p-4 pb-6 rounded-2xl shadow-xl border border-slate-200 flex flex-col justify-between group hover:-translate-y-1 transition-all cursor-pointer" onclick="openLightbox('${photo.image_url}', '${escapeHtml(photo.author)}', '${dateStr}')">
-                        <div class="w-full h-64 bg-slate-900 rounded-xl overflow-hidden relative mb-4">
-                            <img src="${photo.image_url}" alt="Wspomnienie" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="bg-white p-3.5 pb-5 rounded-sm polaroid-shadow border border-stone-200/60 flex flex-col justify-between transition-transform hover:scale-[1.02] cursor-pointer ${randomRot}" onclick="openLightbox('${photo.image_url}', '${escapeHtml(photo.author)}', '${dateStr}')">
+                        <div class="w-full aspect-square bg-stone-100 overflow-hidden mb-3">
+                            <img src="${photo.image_url}" alt="Wspomnienie" class="w-full h-full object-cover">
                         </div>
-                        <div>
-                            <div class="font-loubag text-slate-800 text-sm font-semibold truncate mb-1">
-                                <i class="fa-solid fa-signature text-brand-600 mr-1"></i> ${escapeHtml(photo.author)}
-                            </div>
-                            <div class="text-[11px] text-slate-400 font-mono">
-                                <i class="fa-regular fa-clock mr-1"></i> ${dateStr}
-                            </div>
+                        <div class="px-1">
+                            <p class="font-handwriting text-2xl text-stone-800 tracking-wide truncate mb-1">${escapeHtml(photo.author)}</p>
+                            <p class="text-[10px] text-stone-400 font-mono">${dateStr}</p>
                         </div>
                     </div>
                 `;
