@@ -377,11 +377,11 @@
                 });
 
                 const cardWidth = 470;
-                const cardHeight = 740;
+                const cardHeight = 720;
                 const cardX = (width - cardWidth) / 2;
                 const cardY = (height - cardHeight) / 2;
 
-                // Kartka / ramka wizytówki
+                // Kartka / ramka wizytówki (zwaras struktura, mniejsze odstępy)
                 page.drawRectangle({
                     x: cardX,
                     y: cardY,
@@ -392,10 +392,11 @@
                     borderWidth: 1,
                 });
 
-                // Rysowanie logo PNG na górze karty
-                const logoDims = logoImage.scale(0.35);
+                // Zwarty układ z góry karty:
+                // 1. Logo
+                const logoDims = logoImage.scale(0.28);
                 const logoX = (width - logoDims.width) / 2;
-                const logoY = cardY + cardHeight - 110;
+                const logoY = cardY + cardHeight - 85;
                 page.drawImage(logoImage, {
                     x: logoX,
                     y: logoY,
@@ -403,31 +404,31 @@
                     height: logoDims.height,
                 });
 
-                // Tytuł imprezy (używamy Engram Warsaw Black)
+                // 2. Większy, bardziej wyrazisty tytuł imprezy
                 const titleText = sanitizeText(activeEventForPDF.title).toUpperCase();
-                const titleFontSize = 15;
+                const titleFontSize = 22; // Powiększony tytuł
                 const titleWidth = fontBlack.widthOfTextAtSize(titleText, titleFontSize);
                 page.drawText(titleText, {
                     x: (width - titleWidth) / 2,
-                    y: logoY - 35,
+                    y: logoY - 32,
                     size: titleFontSize,
                     font: fontBlack,
                     color: rgb(0.12, 0.11, 0.10),
                 });
 
-                // Podpis pod tytułem (używamy Engram Warsaw Light)
+                // 3. Podpis / instrukcja pod tytułem
                 const subText = sanitizeText("Zeskanuj kod, aby dodać zdjęcia z imprezy!");
                 const subFontSize = 10;
                 const subWidth = fontLight.widthOfTextAtSize(subText, subFontSize);
                 page.drawText(subText, {
                     x: (width - subWidth) / 2,
-                    y: logoY - 55,
+                    y: logoY - 50,
                     size: subFontSize,
                     font: fontLight,
                     color: rgb(0.45, 0.44, 0.42),
                 });
 
-                // Generowanie kodu QR za pomocą qrcodejs do pliku graficznego i osadzenie w PDF
+                // 4. Generowanie kodu QR i osadzenie na środku
                 const tempDiv = document.createElement('div');
                 new QRCode(tempDiv, {
                     text: activeEventForPDF.guestLink,
@@ -445,9 +446,9 @@
                     const qrImageBytes = await fetch(qrDataUri).then(res => res.arrayBuffer());
                     const qrImage = await pdfDoc.embedPng(qrImageBytes);
 
-                    const qrSize = 220;
+                    const qrSize = 230;
                     const qrX = (width - qrSize) / 2;
-                    const qrY = cardY + 220;
+                    const qrY = cardY + 185;
 
                     page.drawImage(qrImage, {
                         x: qrX,
@@ -457,37 +458,37 @@
                     });
                 }
 
-                // Link tekstowy na dole (używamy Engram Warsaw Light)
+                // 5. Link tekstowy pod QR
                 const linkText = activeEventForPDF.guestLink;
                 const linkFontSize = 8.5;
                 const linkWidth = fontLight.widthOfTextAtSize(linkText, linkFontSize);
                 page.drawText(linkText, {
                     x: (width - linkWidth) / 2,
-                    y: cardY + 190,
+                    y: cardY + 160,
                     size: linkFontSize,
                     font: fontLight,
                     color: rgb(0.40, 0.40, 0.40),
                 });
 
-                // Duży napis akcji na dole (używamy Engram Warsaw Black)
+                // 6. Sekcja dolna: wyraziste call-to-action
                 const bigActionText = "DODAJ KADR";
-                const bigFontSize = 30;
+                const bigFontSize = 28;
                 const bigActionWidth = fontBlack.widthOfTextAtSize(bigActionText, bigFontSize);
                 page.drawText(bigActionText, {
                     x: (width - bigActionWidth) / 2,
-                    y: cardY + 70,
+                    y: cardY + 80,
                     size: bigFontSize,
                     font: fontBlack,
                     color: rgb(0.12, 0.11, 0.10),
                 });
 
-                // Slogan (używamy Engram Warsaw Medium)
+                // 7. Slogan na samym dole
                 const hintText = sanitizeText("Uwiecznij te chwile razem z nami ✨");
-                const hintFontSize = 10.5;
+                const hintFontSize = 10;
                 const hintWidth = fontMedium.widthOfTextAtSize(hintText, hintFontSize);
                 page.drawText(hintText, {
                     x: (width - hintWidth) / 2,
-                    y: cardY + 45,
+                    y: cardY + 55,
                     size: hintFontSize,
                     font: fontMedium,
                     color: rgb(0.55, 0.54, 0.52),
