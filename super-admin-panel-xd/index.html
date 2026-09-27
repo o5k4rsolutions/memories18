@@ -9,7 +9,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome -->
-           <link rel="icon" type="image/x-icon" href="https://memories18.pages.dev/files-content/favicon-18-logo.svg">
+    <link rel="icon" type="image/x-icon" href="https://memories18.pages.dev/files-content/favicon-18-logo.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- QRCode Generator library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -234,7 +234,7 @@
                 const guestLink = `${origin}${pathPrefix}/memories/guest.html?id=${ev.id}`;
                 const hostLink = `${origin}${pathPrefix}/memories/host.html?id=${ev.id}`;
 
-                const safeTitle = ev.title.replace(/'/g, "\\'");
+                const safeTitle = (ev.title || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
                 html += `
                     <div class="bg-stone-50/70 border border-stone-200/80 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -323,7 +323,6 @@
             link.click();
         }
 
-        // Pomocnicza funkcja czyszcząca polskie znaki dla niestandardowych czcionek TTF bez pełnej mapy glyphów
         function sanitizeText(str) {
             if (!str) return '';
             return str
@@ -338,15 +337,13 @@
                 .replace(/ż/g, 'z').replace(/Ż/g, 'Z');
         }
 
-        // Generowanie pliku PDF A4 za pomocą pdf-lib z dedykowanymi czcionkami Engram Warsaw
         async function generatePDF() {
             if (!activeEventForPDF) return;
 
             try {
-                const { PDFDocument, rgb } = PDFId = PDFLib;
+                const { PDFDocument, rgb } = PDFLib;
                 const pdfDoc = await PDFDocument.create();
 
-                // Pobieranie dedykowanych czcionek z podanych adresów URL
                 const lightFontBytes = await fetch('https://memories18.pages.dev/files-content/engram-warsaw-light.ttf').then(res => res.arrayBuffer());
                 const mediumFontBytes = await fetch('https://memories18.pages.dev/files-content/engram-warsaw-medium.ttf').then(res => res.arrayBuffer());
                 const blackFontBytes = await fetch('https://memories18.pages.dev/files-content/engram-warsaw-black.ttf').then(res => res.arrayBuffer());
@@ -355,11 +352,9 @@
                 const engramMedium = await pdfDoc.embedFont(mediumFontBytes);
                 const engramBlack = await pdfDoc.embedFont(blackFontBytes);
                 
-                // Format A4 w punktach (595.28 x 841.89)
                 const page = pdfDoc.addPage([595.28, 841.89]);
                 const { width, height } = page.getSize();
 
-                // Tło strony (#f6f5f2)
                 page.drawRectangle({
                     x: 0,
                     y: 0,
@@ -368,7 +363,6 @@
                     color: rgb(0.96, 0.96, 0.95),
                 });
 
-                // Biała karta na środku strony A4
                 const cardWidth = 470;
                 const cardHeight = 740;
                 const cardX = (width - cardWidth) / 2;
@@ -384,7 +378,6 @@
                     borderWidth: 1,
                 });
 
-                // Kod QR
                 const qrCanvas = document.querySelector('#qrcode canvas');
                 if (qrCanvas) {
                     const qrDataUri = qrCanvas.toDataURL('image/png');
@@ -403,7 +396,6 @@
                     });
                 }
 
-                // 1. Tytuł imprezy (użycie Engram Medium / Black)
                 const titleText = sanitizeText(activeEventForPDF.title).toUpperCase();
                 const titleFontSize = 16;
                 const titleWidth = engramMedium.widthOfTextAtSize(titleText, titleFontSize);
@@ -415,7 +407,6 @@
                     color: rgb(0.12, 0.11, 0.10),
                 });
 
-                // Podtytuł (użycie Engram Light)
                 const subText = sanitizeText("Zeskanuj kod, aby dodać zdjęcia z imprezy!");
                 const subFontSize = 11;
                 const subWidth = engramLight.widthOfTextAtSize(subText, subFontSize);
@@ -427,7 +418,6 @@
                     color: rgb(0.45, 0.44, 0.42),
                 });
 
-                // 2. Link tekstowy pod kodem QR
                 const linkText = activeEventForPDF.guestLink;
                 const linkFontSize = 9;
                 const linkWidth = engramLight.widthOfTextAtSize(linkText, linkFontSize);
@@ -439,7 +429,6 @@
                     color: rgb(0.40, 0.40, 0.40),
                 });
 
-                // 3. Wielki napis na samym dole: "DODAJ KADR" (użycie Engram Black)
                 const bigActionText = "DODAJ KADR";
                 const bigFontSize = 32;
                 const bigActionWidth = engramBlack.widthOfTextAtSize(bigActionText, bigFontSize);
@@ -451,7 +440,6 @@
                     color: rgb(0.12, 0.11, 0.10),
                 });
 
-                // Tekst zachęty pod napisem
                 const hintText = sanitizeText("Uwiecznij te chwile razem z nami ✨");
                 const hintFontSize = 11;
                 const hintWidth = engramLight.widthOfTextAtSize(hintText, hintFontSize);
@@ -463,7 +451,6 @@
                     color: rgb(0.55, 0.54, 0.52),
                 });
 
-                // Zapis pliku PDF
                 const pdfBytes = await pdfDoc.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 const link = document.createElement('a');
@@ -477,11 +464,16 @@
             }
         }
 
-        function copyToClipboard(elementId) {
+        async function copyToClipboard(elementId) {
             const input = document.getElementById(elementId);
-            input.select();
-            document.execCommand('copy');
-            alert('Skopiowano do schowka!');
+            try {
+                await navigator.clipboard.writeText(input.value);
+                alert('Skopiowano do schowka!');
+            } catch (err) {
+                input.select();
+                document.execCommand('copy');
+                alert('Skopiowano do schowka!');
+            }
         }
 
         async function deleteEvent(id) {
