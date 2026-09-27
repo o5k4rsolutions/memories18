@@ -383,10 +383,10 @@
                     borderWidth: 0.75,
                 });
 
-                // 1. LOGO NA GÓRZE - poprawna skala (0.35) i centrowanie
+                // 1. LOGO NA GÓRZE - obniżone względem poprzedniej wersji, żeby nie wychodziło poza ramkę
                 const logoDims = logoImage.scale(0.35);
                 const logoX = (width - logoDims.width) / 2;
-                const logoY = cardY + cardHeight - 85;
+                const logoY = cardY + cardHeight - 105;
                 page.drawImage(logoImage, {
                     x: logoX,
                     y: logoY,
@@ -394,7 +394,7 @@
                     height: logoDims.height,
                 });
 
-                // 2. TYTUŁ IMPREZY (powiększony, responsywny wielolinijkowy)
+                // 2. TYTUŁ IMPREZY
                 const titleText = (activeEventForPDF.title || "").toUpperCase();
                 const titleFontSize = 28;
                 const maxLineWidth = cardWidth - 60;
@@ -442,7 +442,7 @@
                     color: rgb(0.35, 0.34, 0.32),
                 });
 
-                // 4. KOD QR (powiększony, centrowany)
+                // 4. KOD QR
                 const tempDiv = document.createElement('div');
                 new QRCode(tempDiv, {
                     text: activeEventForPDF.guestLink,
@@ -488,7 +488,7 @@
                     color: rgb(0.50, 0.49, 0.47),
                 });
 
-                // 6. SEKCJA DOLNA: DODAJ KADR oraz slogan (idealnie centralnie pod linkiem)
+                // 6. SEKCJA DOLNA: DODAJ KADR oraz slogan (podniesione wyżej)
                 const actionText = "DODAJ KADR";
                 const actionFontSize = 28;
                 const actionWidth = fontBlack.widthOfTextAtSize(actionText, actionFontSize);
@@ -497,7 +497,7 @@
                 const footerFontSize = 11;
                 const footerWidth = fontMedium.widthOfTextAtSize(footerText, footerFontSize);
 
-                const baseBottomY = cardY + 30;
+                const baseBottomY = cardY + 42; // Podniesione wyżej od dolnej krawędzi
                 
                 page.drawText(footerText, {
                     x: (width - footerWidth) / 2,
