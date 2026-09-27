@@ -62,7 +62,7 @@
         <!-- Config Setup Modal/Banner if keys are missing -->
         <div id="config-banner" class="mb-8 bg-amber-50 border border-amber-200 rounded-3xl p-6 shadow-sm">
             <h2 class="font-gliker text-xl text-amber-900 mb-2"><i class="fa-solid fa-triangle-exclamation text-amber-600 mr-2"></i> Konfiguracja Supabase</h2>
-            <p class="text-amber-800 text-sm mb-4">Aby panel działał poprawnie z bazą danych, podaj swoje klucze Supabase (możesz je też wgrać jako Vercel Environment Variables).</p>
+            <p class="text-amber-800 text-sm mb-4">Aby panel działał poprawnie z bazą danych, podaj swoje klucze Supabase.</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
                     <label class="block text-xs font-semibold text-amber-900 mb-1">Supabase URL</label>
@@ -117,12 +117,12 @@
                     <div id="events-list" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
                         <div class="text-center py-12 text-slate-400 text-sm">
                             <i class="fa-solid fa-folder-open text-3xl mb-3 block"></i>
-                            Brakut utworzonych imprez w bazie. Utwórz pierwszą po lewej stronie!
+                            Brak utworzonych imprez w bazie. Utwórz pierwszą po lewej stronie!
                         </div>
                     </div>
                 </div>
 
-                <!-- Generated Details Modal/Card -->
+                <!-- Generated Details Card -->
                 <div id="result-card" class="hidden bg-gradient-to-br from-brand-50 to-pink-50 border border-brand-200 rounded-3xl p-6 sm:p-8 shadow-xl">
                     <h3 class="font-gliker text-xl text-slate-900 mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-circle-check text-brand-600"></i> Wygenerowano pomyślnie!
@@ -173,11 +173,9 @@
     <script>
         let supabaseClient = null;
 
-        // AUTOMATYCZNIE WPISANE DANE SUPABASE (możesz je tutaj podmienić)
         const DEFAULT_SUPABASE_URL = 'https://exislasbcahoacmqhpaf.supabase.co';
         const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4aXNsYXNiY2Fob2FjbXFocGFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0OTMzNDksImV4cCI6MjEwNjA2OTM0OX0.71P6ArRLyDg3AJdCCKXIgaUBI2wawBTRYYxh36Iq5yY';
 
-        // Auto load saved config or environment defaults on startup
         window.addEventListener('DOMContentLoaded', () => {
             const savedUrl = localStorage.getItem('mem_supa_url') || DEFAULT_SUPABASE_URL;
             const savedKey = localStorage.getItem('mem_supa_key') || DEFAULT_SUPABASE_KEY;
@@ -185,7 +183,7 @@
             document.getElementById('supa-url').value = savedUrl;
             document.getElementById('supa-key').value = savedKey;
             
-            if (savedUrl && savedKey && !savedUrl.includes('YOUR_SUPABASE_URL')) {
+            if (savedUrl && savedKey) {
                 initSupabase(savedUrl, savedKey);
             }
         });
@@ -210,7 +208,6 @@
                 loadEvents();
             } catch (err) {
                 console.error(err);
-                alert('Błąd inicjalizacji Supabase. Sprawdź dane.');
             }
         }
 
@@ -223,9 +220,8 @@
                 return;
             }
 
-            document.getElementById('events-count.textContent') // safety
             const countEl = document.getElementById('events-count');
-            if(countEl) countEl.textContent = `${data.length} aktywnych`;
+            if (countEl) countEl.textContent = `${data.length} aktywnych`;
 
             const listEl = document.getElementById('events-list');
             if (data.length === 0) {
@@ -238,10 +234,9 @@
                 const deadlineDate = new Date(ev.deadline);
                 const isExpired = new Date() > deadlineDate;
                 const origin = window.location.origin;
-                // Determine base path depending on whether hosted on root or subfolder
                 const pathPrefix = window.location.pathname.includes('/super-admin-panel-xd') ? window.location.pathname.replace('/super-admin-panel-xd/index.html', '') : '';
-                const guestLink = `${origin}/memories/guest.html?id=${ev.id}`;
-                const hostLink = `${origin}/memories/host.html?id=${ev.id}`;
+                const guestLink = `${origin}${pathPrefix}/memories/guest.html?id=${ev.id}`;
+                const hostLink = `${origin}${pathPrefix}/memories/host.html?id=${ev.id}`;
 
                 html += `
                     <div class="bg-[#faf8fc] border border-slate-200/80 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -293,8 +288,8 @@
 
             const origin = window.location.origin;
             const pathPrefix = window.location.pathname.includes('/super-admin-panel-xd') ? window.location.pathname.replace('/super-admin-panel-xd/index.html', '') : '';
-            const guestLink = `${origin}/memories/guest.html?id=${eventId}`;
-            const hostLink = `${origin}/memories/host.html?id=${eventId}`;
+            const guestLink = `${origin}${pathPrefix}/memories/guest.html?id=${eventId}`;
+            const hostLink = `${origin}${pathPrefix}/memories/host.html?id=${eventId}`;
 
             showEventDetails(eventId, title, password, guestLink, hostLink);
         }
@@ -305,7 +300,6 @@
             document.getElementById('res-host-url').value = hostLink;
             document.getElementById('res-host-pass').textContent = password;
 
-            // Generate QR
             const qrcodeEl = document.getElementById('qrcode');
             qrcodeEl.innerHTML = '';
             new QRCode(qrcodeEl, {
@@ -338,7 +332,6 @@
 
         async function deleteEvent(id) {
             if (!confirm('Czy na pewno chcesz usunąć tę imprezę oraz powiązane zdjęcia?')) return;
-            // Delete event (and cascade photos if foreign key is set up)
             await supabaseClient.from('memories_photos').delete().eq('event_id', id);
             const { error } = await supabaseClient.from('memories_events').delete().eq('id', id);
             if (error) {
