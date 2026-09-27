@@ -240,8 +240,8 @@
                 const origin = window.location.origin;
                 // Determine base path depending on whether hosted on root or subfolder
                 const pathPrefix = window.location.pathname.includes('/super-admin-panel-xd') ? window.location.pathname.replace('/super-admin-panel-xd/index.html', '') : '';
-                const guestLink = `${origin}${pathPrefix}/memories/guest.html?id=${ev.id}`;
-                const hostLink = `${origin}${pathPrefix}/memories/host.html?id=${ev.id}`;
+                const guestLink = `${origin}/memories/guest.html?id=${ev.id}`;
+                const hostLink = `${origin}/memories/host.html?id=${ev.id}`;
 
                 html += `
                     <div class="bg-[#faf8fc] border border-slate-200/80 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
