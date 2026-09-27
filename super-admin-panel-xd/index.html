@@ -235,8 +235,8 @@
                 const isExpired = new Date() > deadlineDate;
                 const origin = window.location.origin;
                 const pathPrefix = window.location.pathname.includes('/memories') ? window.location.pathname.replace('/memories', '') : '';
-                const guestLink = `${origin}${pathPrefix}/guest.html?id=${ev.id}`;
-                const hostLink = `${origin}${pathPrefix}/host.html?id=${ev.id}`;
+                const guestLink = `${origin}${pathPrefix}/memories/guest.html?id=${ev.id}`;
+                const hostLink = `${origin}${pathPrefix}/memories/host.html?id=${ev.id}`;
 
                 html += `
                     <div class="bg-[#faf8fc] border border-slate-200/80 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -288,8 +288,8 @@
 
             const origin = window.location.origin;
             const pathPrefix = window.location.pathname.includes('/memories') ? window.location.pathname.replace('/memories', '') : '';
-            const guestLink = `${origin}${pathPrefix}/guest.html?id=${eventId}`;
-            const hostLink = `${origin}${pathPrefix}/host.html?id=${eventId}`;
+            const guestLink = `${origin}${pathPrefix}/memories/guest.html?id=${eventId}`;
+            const hostLink = `${origin}${pathPrefix}/memories/host.html?id=${eventId}`;
 
             showEventDetails(eventId, title, password, guestLink, hostLink);
         }
