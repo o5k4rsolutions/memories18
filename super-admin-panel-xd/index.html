@@ -13,8 +13,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- QRCode Generator library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- pdf-lib for PDF generation -->
+    <!-- pdf-lib dla PDF generation -->
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <!-- fontkit dla obsługi niestandardowych czcionek TTF -->
+    <script src="https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.min.js"></script>
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
@@ -344,18 +346,23 @@
                 const { PDFDocument, rgb } = PDFLib;
                 const pdfDoc = await PDFDocument.create();
 
-                // Pobieranie czcionek oraz nowego logo PNG
-                const [lightFontBytes, mediumFontBytes, blackFontBytes, logoImageBytes] = await Promise.all([
-                    fetch('https://memories18.pages.dev/files-content/engram-warsaw-light.ttf').then(res => res.arrayBuffer()),
-                    fetch('https://memories18.pages.dev/files-content/engram-warsaw-medium.ttf').then(res => res.arrayBuffer()),
-                    fetch('https://memories18.pages.dev/files-content/engram-warsaw-black.ttf').then(res => res.arrayBuffer()),
+                // Rejestracja fontkit wymagana do osadzania zewnętrznych czcionek TTF
+                pdfDoc.registerFontkit(fontkit);
+
+                // Pobieranie dedykowanych czcionek Engram Warsaw
+                const [blackFontBytes, lightFontBytes, mediumFontBytes, logoRes] = await Promise.all([
+                    fetch('https://lifeinwarsaw.vercel.app/liw-content/engram-warsaw-black.ttf').then(res => res.arrayBuffer()),
+                    fetch('https://lifeinwarsaw.vercel.app/liw-content/engram-warsaw-light.ttf').then(res => res.arrayBuffer()),
+                    fetch('https://lifeinwarsaw.vercel.app/liw-content/engram-warsaw-medium.ttf').then(res => res.arrayBuffer()),
                     fetch('https://memories18.pages.dev/files-content/memories18_logo.png').then(res => res.arrayBuffer())
                 ]);
 
-                const engramLight = await pdfDoc.embedFont(lightFontBytes);
-                const engramMedium = await pdfDoc.embedFont(mediumFontBytes);
-                const engramBlack = await pdfDoc.embedFont(blackFontBytes);
-                const logoImage = await pdfDoc.embedPng(logoImageBytes);
+                // Osadzanie czcionek w dokumencie PDF
+                const fontBlack = await pdfDoc.embedFont(blackFontBytes);
+                const fontLight = await pdfDoc.embedFont(lightFontBytes);
+                const fontMedium = await pdfDoc.embedFont(mediumFontBytes);
+
+                const logoImage = await pdfDoc.embedPng(logoRes);
                 
                 const page = pdfDoc.addPage([595.28, 841.89]);
                 const { width, height } = page.getSize();
@@ -385,7 +392,7 @@
                     borderWidth: 1,
                 });
 
-                // Rysowanie nowego logo PNG na górze karty
+                // Rysowanie logo PNG na górze karty
                 const logoDims = logoImage.scale(0.35);
                 const logoX = (width - logoDims.width) / 2;
                 const logoY = cardY + cardHeight - 110;
@@ -396,27 +403,27 @@
                     height: logoDims.height,
                 });
 
-                // Tytuł imprezy pod logo
+                // Tytuł imprezy (używamy Engram Warsaw Black)
                 const titleText = sanitizeText(activeEventForPDF.title).toUpperCase();
                 const titleFontSize = 15;
-                const titleWidth = engramMedium.widthOfTextAtSize(titleText, titleFontSize);
+                const titleWidth = fontBlack.widthOfTextAtSize(titleText, titleFontSize);
                 page.drawText(titleText, {
                     x: (width - titleWidth) / 2,
                     y: logoY - 35,
                     size: titleFontSize,
-                    font: engramMedium,
+                    font: fontBlack,
                     color: rgb(0.12, 0.11, 0.10),
                 });
 
-                // Podpis pod tytułem
+                // Podpis pod tytułem (używamy Engram Warsaw Light)
                 const subText = sanitizeText("Zeskanuj kod, aby dodać zdjęcia z imprezy!");
                 const subFontSize = 10;
-                const subWidth = engramLight.widthOfTextAtSize(subText, subFontSize);
+                const subWidth = fontLight.widthOfTextAtSize(subText, subFontSize);
                 page.drawText(subText, {
                     x: (width - subWidth) / 2,
                     y: logoY - 55,
                     size: subFontSize,
-                    font: engramLight,
+                    font: fontLight,
                     color: rgb(0.45, 0.44, 0.42),
                 });
 
@@ -431,7 +438,6 @@
                     correctLevel: QRCode.CorrectLevel.H
                 });
                 
-                // Krótkie opóźnienie na render QR canvas
                 await new Promise(resolve => setTimeout(resolve, 50));
                 const qrCanvas = tempDiv.querySelector('canvas');
                 if (qrCanvas) {
@@ -451,39 +457,39 @@
                     });
                 }
 
-                // Link tekstowy na dole
+                // Link tekstowy na dole (używamy Engram Warsaw Light)
                 const linkText = activeEventForPDF.guestLink;
                 const linkFontSize = 8.5;
-                const linkWidth = engramLight.widthOfTextAtSize(linkText, linkFontSize);
+                const linkWidth = fontLight.widthOfTextAtSize(linkText, linkFontSize);
                 page.drawText(linkText, {
                     x: (width - linkWidth) / 2,
                     y: cardY + 190,
                     size: linkFontSize,
-                    font: engramLight,
+                    font: fontLight,
                     color: rgb(0.40, 0.40, 0.40),
                 });
 
-                // Duży napis akcji na dole
+                // Duży napis akcji na dole (używamy Engram Warsaw Black)
                 const bigActionText = "DODAJ KADR";
                 const bigFontSize = 30;
-                const bigActionWidth = engramBlack.widthOfTextAtSize(bigActionText, bigFontSize);
+                const bigActionWidth = fontBlack.widthOfTextAtSize(bigActionText, bigFontSize);
                 page.drawText(bigActionText, {
                     x: (width - bigActionWidth) / 2,
                     y: cardY + 70,
                     size: bigFontSize,
-                    font: engramBlack,
+                    font: fontBlack,
                     color: rgb(0.12, 0.11, 0.10),
                 });
 
-                // Slogan
+                // Slogan (używamy Engram Warsaw Medium)
                 const hintText = sanitizeText("Uwiecznij te chwile razem z nami ✨");
                 const hintFontSize = 10.5;
-                const hintWidth = engramLight.widthOfTextAtSize(hintText, hintFontSize);
+                const hintWidth = fontMedium.widthOfTextAtSize(hintText, hintFontSize);
                 page.drawText(hintText, {
                     x: (width - hintWidth) / 2,
                     y: cardY + 45,
                     size: hintFontSize,
-                    font: engramLight,
+                    font: fontMedium,
                     color: rgb(0.55, 0.54, 0.52),
                 });
 
