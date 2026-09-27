@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Solenizanta - Memories18</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif'],
+                        loubag: ['Cinzel', 'serif'],
+                        gliker: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fdf4f8',
+                            100: '#fbe8f2',
+                            500: '#d946ef',
+                            600: '#c026d3',
+                            700: '#a21caf',
+                            900: '#701a75',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .font-loubag { font-family: 'Cinzel', serif; letter-spacing: -0.02em; }
+        .font-gliker { font-family: 'Outfit', sans-serif; font-weight: 800; }
+    </style>
+</head>
+<body class="bg-[#faf8fc] text-slate-800 font-sans antialiased min-h-screen flex flex-col justify-between">
+
+    <header class="sticky top-0 z-50 backdrop-blur-md bg-white/90 border-b border-slate-200/60 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 h-24 flex items-center justify-between">
+            <img src="https://memories18.vercel.app/files-content/memories18_logo.svg" alt="Memories18" class="h-14 w-auto object-contain">
+            <div id="host-header-info" class="hidden text-sm font-semibold text-slate-700">
+                <span id="nav-event-title" class="text-brand-600 font-gliker">Impreza</span>
+                <button onclick="logoutHost()" class="ml-4 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-xl">Wyloguj</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+        
+        <!-- Login Card -->
+        <div id="login-view" class="max-w-md mx-auto bg-white border border-slate-200/80 rounded-3xl p-8 shadow-xl text-center">
+            <div class="w-16 h-16 bg-brand-500/10 text-brand-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h1 class="font-gliker text-2xl text-slate-900 mb-2">Panel Solenizanta</h1>
+            <p class="text-slate-500 text-sm mb-6">Wpisz hasło otrzymane od organizatora Memories18, aby zobaczyć wszystkie zdjęcia z imprezy.</p>
+            
+            <form onsubmit="handleHostLogin(event)" class="space-y-4">
+                <input type="password" id="host-password-input" required placeholder="Wpisz hasło..." class="w-full bg-[#faf8fc] border border-slate-200 rounded-xl px-4 py-3 text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono">
+                <button type="submit" class="w-full bg-gradient-to-r from-brand-600 to-pink-600 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 transition-all font-gliker text-sm">
+                    Zaloguj się
+                </button>
+            </form>
+            <p id="login-error" class="text-red-500 text-xs mt-3 hidden">Nieprawidłowe hasło!</p>
+        </div>
+
+        <!-- Gallery View -->
+        <div id="gallery-view" class="hidden space-y-8">
+            <div class="bg-gradient-to-r from-brand-600 to-pink-600 rounded-3xl p-8 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                    <span class="bg-white/20 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Galeria Solenizanta</span>
+                    <h1 id="gallery-title" class="font-gliker text-3xl mt-2">Wspomnienia z imprezy</h1>
+                    <p class="text-white/80 text-sm mt-1">Wszystkie zdjęcia zrobione i wrzucone przez Twoich gości w jednym miejscu.</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 text-center">
+                    <span id="photo-count" class="font-gliker text-3xl block">0</span>
+                    <span class="text-xs text-white/80 uppercase font-mono">Wszystkich zdjęć</span>
+                </div>
+            </div>
+
+            <div id="photos-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Dynamic Photos inserted here -->
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200/80 py-8 text-slate-500 text-sm mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <img src="https://memories18.vercel.app/files-content/logo_rakso_szerokie.svg" alt="RAKSO" class="h-8 w-auto object-contain mx-auto mb-2">
+            <p class="text-xs text-slate-400">Memories18 &copy; 2026 RAKSO Web Development.</p>
+        </div>
+    </footer>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('id');
+        let currentEventData = null;
+        let supabaseClient = null;
+
+        // AUTOMATYCZNIE WPISANE DANE SUPABASE
+        const DEFAULT_SUPABASE_URL = 'https://exislasbcahoacmqhpaf.supabase.co';
+        const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4aXNsYXNiY2Fob2FjbXFocGFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0OTMzNDksImV4cCI6MjEwNjA2OTM0OX0.71P6ArRLyDg3AJdCCKXIgaUBI2wawBTRYYxh36Iq5yY';
+
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const savedUrl = localStorage.getItem('mem_supa_url') || DEFAULT_SUPABASE_URL;
+            const savedKey = localStorage.getItem('mem_supa_key') || DEFAULT_SUPABASE_KEY;
+            
+            try {
+                supabaseClient = window.supabase.createClient(url, key); // Fallback below uses correct saved variables
+            } catch (e) {}
+
+            try {
+                supabaseClient = window.supabase.createClient(savedUrl, savedKey);
+            } catch (e) {
+                console.error(e);
+            }
+
+            if (!eventId) {
+                document.getElementById('login-view').innerHTML = `<p class="text-red-500 font-bold">Brak ID imprezy w adresie URL!</p>`;
+                return;
+            }
+
+            // Fetch event info
+            const { data, error } = await supabaseClient.from('memories_events').select('*').eq('id', eventId).single();
+            if (error || !data) {
+                document.getElementById('login-view').innerHTML = `<p class="text-red-500 font-bold">Nie znaleziono wydarzenia w bazie.</p>`;
+                return;
+            }
+            currentEventData = data;
+
+            // Check if already logged in for this event in session
+            const sessionKey = `host_auth_${eventId}`;
+            if (sessionStorage.getItem(sessionKey) === 'true') {
+                showGallery();
+            }
+        });
+
+        async function handleHostLogin(e) {
+            e.preventDefault();
+            const pass = document.getElementById('host-password-input').value.trim();
+            if (pass === currentEventData.password) {
+                sessionStorage.setItem(`host_auth_${eventId}`, 'true');
+                showGallery();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        function logoutHost() {
+            sessionStorage.removeItem(`host_auth_${eventId}`);
+            location.reload();
+        }
+
+        async function showGallery() {
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('gallery-view').classList.remove('hidden');
+            document.getElementById('host-header-info').classList.remove('hidden');
+            document.getElementById('nav-event-title').textContent = currentEventData.title;
+            document.getElementById('gallery-title').textContent = currentEventData.title;
+
+            await loadPhotos();
+        }
+
+        async function loadPhotos() {
+            const { data, error } = await supabaseClient
+                .from('memories_photos')
+                .select('*')
+                .eq('event_id', eventId)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            document.getElementById('photo-count').textContent = data.length;
+            const gridEl = document.getElementById('photos-grid');
+
+            if (data.length === 0) {
+                gridEl.innerHTML = `<div class="col-span-full text-center py-16 text-slate-400 bg-white rounded-3xl border border-slate-200"><i class="fa-regular fa-images text-4xl mb-3 block"></i>Brak zdjęć w tej chwili. Goście wkrótce coś wrzucą!</div>`;
+                return;
+            }
+
+            let html = '';
+            data.forEach(photo => {
+                const dateStr = new Date(photo.created_at).toLocaleString('pl-PL');
+                html += `
+                    <div class="bg-white p-4 pb-6 rounded-2xl shadow-xl border border-slate-200 flex flex-col justify-between group hover:-translate-y-1 transition-all">
+                        <div class="w-full h-64 bg-slate-900 rounded-xl overflow-hidden relative mb-4">
+                            <img src="${photo.image_url}" alt="Wspomnienie" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        </div>
+                        <div>
+                            <div class="font-loubag text-slate-800 text-sm font-semibold truncate mb-1">
+                                <i class="fa-solid fa-signature text-brand-600 mr-1"></i> ${escapeHtml(photo.author)}
+                            </div>
+                            <div class="text-[11px] text-slate-400 font-mono">
+                                <i class="fa-regular fa-clock mr-1"></i> ${dateStr}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            gridEl.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+    </script>
+</body>
+</html>
