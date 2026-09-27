@@ -169,7 +169,7 @@
         let activeEventForPDF = null;
 
         const DEFAULT_SUPABASE_URL = 'https://exislasbcahoacmqhpaf.supabase.co';
-        const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4aXNsYXNiY2Fob2FjbXFocGFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0OTMzNDksImV4cCI6MjEwNjA2OTM0OX0.71P6ArRLyDg3AJdCCKXIgaUBI2wawBTRYYxh36Iq5yY';
+        const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4aXNsYXNiY2Foh2FjbXFocGFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0OTMzNDksImV4cCI6MjEwNjA2OTM0OX0.71P6ArRLyDg3AJdCCKXIgaUBI2wawBTRYYxh36Iq5yY';
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedUrl = localStorage.getItem('mem_supa_url') || DEFAULT_SUPABASE_URL;
@@ -233,7 +233,6 @@
                 const guestLink = `${origin}${pathPrefix}/memories/guest.html?id=${ev.id}`;
                 const hostLink = `${origin}${pathPrefix}/memories/host.html?id=${ev.id}`;
 
-                // Escaping data strings safely for inline function call
                 const safeTitle = ev.title.replace(/'/g, "\\'");
 
                 html += `
@@ -323,23 +322,43 @@
             link.click();
         }
 
-        // Generowanie profesjonalnego pliku PDF A4 za pomocą pdf-lib
+        // Pomocnicza funkcja czyszcząca polskie znaki dla niestandardowych czcionek TTF bez pełnej mapy glyphów
+        function sanitizeText(str) {
+            if (!str) return '';
+            return str
+                .replace(/ą/g, 'a').replace(/Ą/g, 'A')
+                .replace(/ć/g, 'c').replace(/Ć/g, 'C')
+                .replace(/ę/g, 'e').replace(/Ę/g, 'E')
+                .replace(/ł/g, 'l').replace(/Ł/g, 'L')
+                .replace(/ń/g, 'n').replace(/Ń/g, 'N')
+                .replace(/ó/g, 'o').replace(/Ó/g, 'O')
+                .replace(/ś/g, 's').replace(/Ś/g, 'S')
+                .replace(/ź/g, 'z').replace(/Ź/g, 'Z')
+                .replace(/ż/g, 'z').replace(/Ż/g, 'Z');
+        }
+
+        // Generowanie pliku PDF A4 za pomocą pdf-lib z dedykowanymi czcionkami Engram Warsaw
         async function generatePDF() {
             if (!activeEventForPDF) return;
 
             try {
-                const { PDFDocument, rgb } = PDFLib;
+                const { PDFDocument, rgb } = PDFId = PDFLib;
                 const pdfDoc = await PDFDocument.create();
+
+                // Pobieranie dedykowanych czcionek z podanych adresów URL
+                const lightFontBytes = await fetch('https://memories18.pages.dev/files-content/engram-warsaw-light.ttf').then(res => res.arrayBuffer());
+                const mediumFontBytes = await fetch('https://memories18.pages.dev/files-content/engram-warsaw-medium.ttf').then(res => res.arrayBuffer());
+                const blackFontBytes = await fetch('https://memories18.pages.dev/files-content/engram-warsaw-black.ttf').then(res => res.arrayBuffer());
+
+                const engramLight = await pdfDoc.embedFont(lightFontBytes);
+                const engramMedium = await pdfDoc.embedFont(mediumFontBytes);
+                const engramBlack = await pdfDoc.embedFont(blackFontBytes);
                 
                 // Format A4 w punktach (595.28 x 841.89)
                 const page = pdfDoc.addPage([595.28, 841.89]);
                 const { width, height } = page.getSize();
 
-                // Pobranie czarno-białego lub wektorowego logo jako obrazu PNG przez fetch (SVG bezpośrednio nie jest renderowane przez pdf-lib)
-                // W celach demonstracyjnych konwertujemy SVG logo na canvas lub pobieramy gotowe PNG/raster
-                const logoUrl = 'https://memories18.pages.dev/files-content/memories18_logo.svg';
-                
-                // Rysowanie tła w stylu strony (#f6f5f2)
+                // Tło strony (#f6f5f2)
                 page.drawRectangle({
                     x: 0,
                     y: 0,
@@ -348,7 +367,7 @@
                     color: rgb(0.96, 0.96, 0.95),
                 });
 
-                // Biała karta na środku strony A4 (np. szerokość 460, wysokość 720)
+                // Biała karta na środku strony A4
                 const cardWidth = 470;
                 const cardHeight = 740;
                 const cardX = (width - cardWidth) / 2;
@@ -364,14 +383,13 @@
                     borderWidth: 1,
                 });
 
-                // Pobranie obrazu kodu QR z wygenerowanego elementu <canvas> lub <img>
+                // Kod QR
                 const qrCanvas = document.querySelector('#qrcode canvas');
                 if (qrCanvas) {
                     const qrDataUri = qrCanvas.toDataURL('image/png');
                     const qrImageBytes = await fetch(qrDataUri).then((res) => res.arrayBuffer());
                     const qrImage = await pdfDoc.embedPng(qrImageBytes);
 
-                    // Rozmiar i pozycja kodu QR na stronie PDF
                     const qrSize = 220;
                     const qrX = (width - qrSize) / 2;
                     const qrY = cardY + 240;
@@ -384,71 +402,67 @@
                     });
                 }
 
-                // Pobieramy standardowy krój czcionki wbudowany w pdf-lib
-                const fontBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-                const fontRegular = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-
-                // 1. Tytuł imprezy pod górną krawędzią karty
-                const titleText = activeEventForPDF.title.toUpperCase();
+                // 1. Tytuł imprezy (użycie Engram Medium / Black)
+                const titleText = sanitizeText(activeEventForPDF.title).toUpperCase();
                 const titleFontSize = 16;
-                const titleWidth = fontBold.widthOfTextAtSize(titleText, titleFontSize);
+                const titleWidth = engramMedium.widthOfTextAtSize(titleText, titleFontSize);
                 page.drawText(titleText, {
                     x: (width - titleWidth) / 2,
                     y: cardY + cardHeight - 65,
                     size: titleFontSize,
-                    font: fontBold,
+                    font: engramMedium,
                     color: rgb(0.12, 0.11, 0.10),
                 });
 
-                // Podtytuł
-                const subText = "Zeskanuj kod, aby dodać zdjęcia z imprezy!";
+                // Podtytuł (użycie Engram Light)
+                const subText = sanitizeText("Zeskanuj kod, aby dodać zdjęcia z imprezy!");
                 const subFontSize = 11;
-                const subWidth = fontRegular.widthOfTextAtSize(subText, subFontSize);
+                const subWidth = engramLight.widthOfTextAtSize(subText, subFontSize);
                 page.drawText(subText, {
                     x: (width - subWidth) / 2,
                     y: cardY + cardHeight - 90,
                     size: subFontSize,
-                    font: fontRegular,
+                    font: engramLight,
                     color: rgb(0.45, 0.44, 0.42),
                 });
 
                 // 2. Link tekstowy pod kodem QR
                 const linkText = activeEventForPDF.guestLink;
                 const linkFontSize = 9;
-                const linkWidth = fontRegular.widthOfTextAtSize(linkText, linkFontSize);
+                const linkWidth = engramLight.widthOfTextAtSize(linkText, linkFontSize);
                 page.drawText(linkText, {
                     x: (width - linkWidth) / 2,
                     y: cardY + 210,
                     size: linkFontSize,
-                    font: fontRegular,
+                    font: engramLight,
                     color: rgb(0.40, 0.40, 0.40),
                 });
 
-                // 3. Wielki napis na samym dole: "DODAJ KADR"
+                // 3. Wielki napis na samym dole: "DODAJ KADR" (użycie Engram Black)
                 const bigActionText = "DODAJ KADR";
                 const bigFontSize = 32;
-                const bigActionWidth = fontBold.widthOfTextAtSize(bigActionText, bigFontSize);
+                const bigActionWidth = engramBlack.widthOfTextAtSize(bigActionText, bigFontSize);
                 page.drawText(bigActionText, {
                     x: (width - bigActionWidth) / 2,
                     y: cardY + 70,
                     size: bigFontSize,
-                    font: fontBold,
+                    font: engramBlack,
                     color: rgb(0.12, 0.11, 0.10),
                 });
 
-                // Dodanie małego tekstu zachęty pod napisem
-                const hintText = "Uwiecznij te chwile razem z nami ✨";
+                // Tekst zachęty pod napisem
+                const hintText = sanitizeText("Uwiecznij te chwile razem z nami ✨");
                 const hintFontSize = 11;
-                const hintWidth = fontRegular.widthOfTextAtSize(hintText, hintFontSize);
+                const hintWidth = engramLight.widthOfTextAtSize(hintText, hintFontSize);
                 page.drawText(hintText, {
                     x: (width - hintWidth) / 2,
                     y: cardY + 45,
                     size: hintFontSize,
-                    font: fontRegular,
+                    font: engramLight,
                     color: rgb(0.55, 0.54, 0.52),
                 });
 
-                // Zapisanie pliku PDF i wywołanie pobierania w przeglądarce
+                // Zapis pliku PDF
                 const pdfBytes = await pdfDoc.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 const link = document.createElement('a');
