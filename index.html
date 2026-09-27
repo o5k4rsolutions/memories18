@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memories18 - Wspomnienia, które zostają</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Loubag & Gliker aesthetic equivalents + Outfit & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif'],
+                        loubag: ['Cinzel', 'serif'], // Fallback aesthetic styling for Loubag feel
+                        gliker: ['Outfit', 'sans-serif'], // Display styling for Gliker aesthetic
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fdf4f8',
+                            100: '#fbe8f2',
+                            500: '#d946ef',
+                            600: '#c026d3',
+                            700: '#a21caf',
+                            900: '#701a75',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom font imports or simulation for Loubag & Gliker styles */
+        .font-loubag {
+            font-family: 'Cinzel', serif;
+            letter-spacing: -0.02em;
+        }
+        .font-gliker {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body class="bg-[#faf8fc] text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white">
+
+    <header class="sticky top-0 z-50 backdrop-blur-md bg-white/90 border-b border-slate-200/60 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-28 sm:h-32 flex items-center justify-center">
+            <div class="flex items-center gap-3">
+                <a href="#" class="block focus:outline-none focus:ring-2 focus:ring-brand-500 rounded-lg">
+                    <!-- Enlarged Logo centered, no extra nav links -->
+                    <img src="https://memories18.vercel.app/files-content/memories18_logo.svg" alt="Memories18 Logo" class="h-20 sm:h-24 md:h-28 w-auto object-contain scale-110" onerror="this.src='https://placehold.co/400x120/f1f5f9/1e293b?text=Memories18'">
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <section class="relative overflow-hidden py-20 lg:py-32 flex items-center justify-center bg-gradient-to-b from-[#faf8fc] via-white to-[#fcf5fa]">
+        <!-- Glow background effects -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-600/10 rounded-full blur-[140px] pointer-events-none"></div>
+        <div class="absolute top-1/3 right-12 w-80 h-80 bg-pink-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <!-- Removed the badge here as requested -->
+            <h1 class="font-gliker text-5xl sm:text-7xl lg:text-8xl tracking-tight text-slate-900 mb-6 leading-none">
+                Wspomnienia, <br class="hidden sm:block"><span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-pink-600 to-purple-600 font-loubag">które zostają.</span>
+            </h1>
+            <p class="text-lg sm:text-2xl text-slate-600 max-w-3xl mx-auto mb-12 font-light leading-relaxed">
+                Chcesz aby Twoje wspomnienia z imprezy zostały na dłużej? <strong class="text-slate-900 font-semibold">Skorzystaj z usług Memories18!</strong>
+            </p>
+
+            <!-- Interactive Photo to Polaroid Animation Showcase -->
+            <div class="my-16 flex flex-col items-center justify-center">
+                <div class="relative w-72 sm:w-80 h-96 bg-white p-4 pb-12 rounded-2xl shadow-2xl border border-slate-200 rotate-1 hover:rotate-0 transition-transform duration-500 group">
+                    <!-- Photo container with snapshot flash & transformation animation -->
+                    <div class="relative w-full h-72 bg-slate-900 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
+                        <!-- Camera viewfinder overlay grid -->
+                        <div class="absolute inset-0 border-2 border-white/20 m-3 rounded-lg pointer-events-none flex flex-col justify-between p-2">
+                            <div class="flex justify-between text-white/70 text-xs font-mono"><i class="fa-solid fa-circle text-red-500 animate-pulse"></i> REC 1080P</div>
+                            <div class="flex justify-between text-white/70 text-xs font-mono"><span>ISO 400</span><span>F/2.8</span></div>
+                        </div>
+
+                        <!-- Changing photo slides or live animation element -->
+                        <div id="polaroid-screen" class="absolute inset-0 bg-cover bg-center transition-all duration-700 filter contrast-105" style="background-image: url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80')"></div>
+
+                        <!-- Camera flash effect element -->
+                        <div id="camera-flash" class="absolute inset-0 bg-white opacity-0 transition-opacity duration-300 pointer-events-none"></div>
+
+                        <!-- Shutter click indicator -->
+                        <div class="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-mono flex items-center gap-1.5">
+                            <i class="fa-solid fa-camera text-brand-400"></i> <span id="photo-label">Zdj. #01</span>
+                        </div>
+                    </div>
+
+                    <!-- Polaroid caption -->
+                    <div class="mt-4 text-center font-loubag text-slate-700 text-sm font-semibold tracking-wide">
+                        #Memories18 Event Vibes
+                    </div>
+                </div>
+
+
+            <!-- Dynamic Tagline Animation Section -->
+            <div class="my-10 py-6 px-4 rounded-3xl bg-white/60 backdrop-blur-md border border-slate-200/80 shadow-sm max-w-2xl mx-auto">
+                <div class="font-gliker text-2xl sm:text-3xl text-slate-900 tracking-wide flex items-center justify-center gap-2 flex-wrap">
+                    <span>Wspomnienia, które zostają</span>
+                    <span id="animated-ending" class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-pink-600 font-extrabold scale-105 transition-all duration-500">NA ZAWSZE!</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="#jak-to-dziala" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-brand-600 to-pink-600 text-white px-8 py-4 rounded-2xl font-bold text-base shadow-xl shadow-brand-500/25 hover:shadow-brand-500/40 hover:-translate-y-0.5 transition-all font-gliker">
+                    Sprawdź jak to działa <i class="fa-solid fa-arrow-down text-sm"></i>
+                </a>
+                <a href="#kontakt" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-8 py-4 rounded-2xl font-bold text-base hover:bg-slate-50 hover:text-slate-900 transition-all shadow-xs font-gliker">
+                    Skontaktuj się z nami
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section id="jak-to-dziala" class="py-24 bg-white border-t border-b border-slate-200/60 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="font-gliker text-3xl sm:text-5xl text-slate-900 mb-4">Jak to działa?</h2>
+                <p class="text-slate-600 text-lg font-light">Trzy proste kroki, aby zachować najlepsze chwile z Twojego przyjęcia na zawsze.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 max-w-4xl mx-auto">
+                <!-- Step 1 -->
+                <div class="bg-[#faf8fc] border border-slate-200/80 rounded-3xl p-8 sm:p-10 relative flex flex-col justify-between hover:border-brand-500/50 hover:shadow-xl transition-all group">
+                    <div class="absolute -top-4 -left-4 w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-pink-600 text-white font-gliker font-bold flex items-center justify-center text-xl shadow-lg">1</div>
+                    <div>
+                        <div class="w-14 h-14 rounded-2xl bg-brand-500/10 text-brand-600 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-headset"></i>
+                        </div>
+                        <h3 class="font-gliker text-2xl text-slate-900 mb-3">Skontaktuj się z nami</h3>
+                        <p class="text-slate-600 leading-relaxed font-light">
+                            Skontaktuj się z nami w celu utworzenia dla Ciebie specjalnej ramki na twoje przyjęcie.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-[#faf8fc] border border-slate-200/80 rounded-3xl p-8 sm:p-10 relative flex flex-col justify-between hover:border-brand-500/50 hover:shadow-xl transition-all group">
+                    <div class="absolute -top-4 -left-4 w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-pink-600 text-white font-gliker font-bold flex items-center justify-center text-xl shadow-lg">2</div>
+                    <div>
+                        <div class="w-14 h-14 rounded-2xl bg-brand-500/10 text-brand-600 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-file-pdf"></i>
+                        </div>
+                        <h3 class="font-gliker text-2xl text-slate-900 mb-3">Otrzymaj materiały PDF</h3>
+                        <p class="text-slate-600 leading-relaxed font-light">
+                            Po finalizacji zakupu, dostaniesz pdfa z kodem qr dla gości oraz loginem dla ciebie abyś mógł/mogła w przyszłości zobaczyć wspomnienia z imprezy!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="kontakt" class="py-24 relative overflow-hidden bg-[#faf8fc]">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="bg-gradient-to-br from-white to-[#fcf5fa] border border-slate-200/80 rounded-3xl p-8 sm:p-14 shadow-xl text-center relative overflow-hidden">
+                <div class="absolute -top-24 -right-24 w-64 h-64 bg-brand-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <h2 class="font-gliker text-3xl sm:text-5xl text-slate-900 mb-4">Gotowy/a na niezapomnianą pamiątkę?</h2>
+                <p class="text-slate-600 max-w-xl mx-auto mb-10 font-light text-lg">
+                    Skontaktuj się z nami już teraz i zamów spersonalizowaną ramkę Memories18 na swoją imprezę.
+                </p>
+
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-white border-t border-slate-200/80 py-16 text-slate-500 text-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-10">
+            <div class="flex flex-col items-center md:items-start gap-4">
+                <img src="https://memories18.vercel.app/files-content/memories18_logo.svg" alt="Memories18" class="h-12 sm:h-14 w-auto object-contain">
+            </div>
+
+            <div class="flex flex-col items-center md:items-end gap-4">
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-medium text-slate-500">Własność marki</span>
+                    <!-- Enlarged Rakso logo -->
+                    <img src="https://memories18.vercel.app/files-content/logo_rakso_szerokie.svg" alt="RAKSO Web Development" class="h-10 sm:h-12 w-auto object-contain" onerror="this.src='https://placehold.co/180x50/f1f5f9/1e293b?text=RAKSO'">
+                </div>
+                <p class="text-xs text-slate-400 text-center md:text-right max-w-md font-light leading-relaxed">
+                    Memories18 jest własnością marki RAKSO Web Development. Wszelkie prawa zastrzeżone. Kopiowanie materiałów, projektów graficznych oraz kodu źródłowego bez uprzedniej pisemnej zgody jest surowo zabronione. Korzystanie z serwisu oznacza akceptację regulaminu oraz polityki prywatności.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Script for Polaroid and Text Animation loop -->
+    <script>
+        const photos = [
+            { url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=600&q=80', label: 'Zdj. #01 - 18-te Urodziny!' },
+            { url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80', label: 'Zdj. #02 - Impreza w klubie' },
+            { url: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=600&q=80', label: 'Zdj. #03 - Osiemnastka' },
+            { url: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80', label: 'Zdj. #04 - Najlepsza noc' }
+        ];
+
+        let currentIndex = 0;
+        const screenEl = document.getElementById('polaroid-screen');
+        const flashEl = document.getElementById('camera-flash');
+        const labelEl = document.getElementById('photo-label');
+
+        function triggerPolaroidAnimation() {
+            // Flash effect
+            flashEl.style.opacity = '1';
+            setTimeout(() => {
+                flashEl.style.opacity = '0';
+            }, 250);
+
+            // Change photo
+            currentIndex = (currentIndex + 1) % photos.length;
+            screenEl.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                screenEl.style.backgroundImage = `url('${photos[currentIndex].url}')`;
+                labelEl.textContent = photos[currentIndex].label;
+                screenEl.style.transform = 'scale(1)';
+            }, 300);
+        }
+
+        // Run photo animation every 4 seconds
+        setInterval(triggerPolaroidAnimation, 4000);
+    </script>
+</body>
+</html>
