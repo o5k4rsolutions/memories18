@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memories18 - Panel Administratora</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QRCode Generator library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif'],
+                        loubag: ['Cinzel', 'serif'],
+                        gliker: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fdf4f8',
+                            100: '#fbe8f2',
+                            500: '#d946ef',
+                            600: '#c026d3',
+                            700: '#a21caf',
+                            900: '#701a75',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .font-loubag { font-family: 'Cinzel', serif; letter-spacing: -0.02em; }
+        .font-gliker { font-family: 'Outfit', sans-serif; font-weight: 800; }
+    </style>
+</head>
+<body class="bg-[#faf8fc] text-slate-800 font-sans antialiased min-h-screen flex flex-col justify-between">
+
+    <header class="sticky top-0 z-50 backdrop-blur-md bg-white/90 border-b border-slate-200/60 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="https://memories18.vercel.app/files-content/memories18_logo.svg" alt="Memories18 Logo" class="h-10 w-auto object-contain">
+                <span class="bg-brand-500/10 text-brand-600 font-gliker text-xs px-3 py-1 rounded-full uppercase tracking-wider">Super Admin</span>
+            </div>
+            <div id="auth-status" class="text-sm font-medium text-slate-600">
+                <span class="inline-flex items-center gap-2"><i class="fa-solid fa-circle text-amber-500 text-xs"></i> Konfiguracja Supabase wymagana</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        
+        <!-- Config Setup Modal/Banner if keys are missing -->
+        <div id="config-banner" class="mb-8 bg-amber-50 border border-amber-200 rounded-3xl p-6 shadow-sm">
+            <h2 class="font-gliker text-xl text-amber-900 mb-2"><i class="fa-solid fa-triangle-exclamation text-amber-600 mr-2"></i> Konfiguracja Supabase</h2>
+            <p class="text-amber-800 text-sm mb-4">Aby panel działał poprawnie z bazą danych, podaj swoje klucze Supabase (możesz je też wgrać jako Vercel Environment Variables).</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-xs font-semibold text-amber-900 mb-1">Supabase URL</label>
+                    <input type="text" id="supa-url" placeholder="https://xyz.supabase.co" class="w-full bg-white border border-amber-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-amber-900 mb-1">Supabase Anon Key</label>
+                    <input type="password" id="supa-key" placeholder="eyJhbGciOi..." class="w-full bg-white border border-amber-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+            </div>
+            <button onclick="saveSupabaseConfig()" class="bg-amber-600 text-white font-bold text-sm px-6 py-2.5 rounded-xl hover:bg-amber-700 transition-all shadow-md">
+                Zapisz i połącz
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Form to Create New Memory Event -->
+            <div class="lg:col-span-1 bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xl">
+                <h1 class="font-gliker text-2xl text-slate-900 mb-2">Utwórz nową imprezę</h1>
+                <p class="text-slate-500 text-sm mb-6">Wypełnij dane, aby wygenerować kod QR dla gości oraz hasło dla solenizanta.</p>
+
+                <form id="create-event-form" onsubmit="handleCreateEvent(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tytuł imprezy (np. 18-tka Julki)</label>
+                        <input type="text" id="event-title" required placeholder="np. Osiemnastka Kasi" class="w-full bg-[#faf8fc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Koniec przyjmowania zdjęć</label>
+                        <input type="datetime-local" id="event-deadline" required class="w-full bg-[#faf8fc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Hasło dla Solenizanta (do podglądu)</label>
+                        <input type="text" id="event-password" required placeholder="np. julka18lat" class="w-full bg-[#faf8fc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-brand-600 to-pink-600 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 hover:-translate-y-0.5 transition-all font-gliker text-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-qrcode"></i> Generuj QR i Linki
+                    </button>
+                </form>
+            </div>
+
+            <!-- List of Created Events & Output Details -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xl">
+                    <h2 class="font-gliker text-xl text-slate-900 mb-4 flex items-center justify-between">
+                        <span>Aktywne Imprezy / Ramki</span>
+                        <span id="events-count" class="text-xs font-normal bg-brand-50 text-brand-600 px-3 py-1 rounded-full">0 aktywnych</span>
+                    </h2>
+
+                    <div id="events-list" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                        <div class="text-center py-12 text-slate-400 text-sm">
+                            <i class="fa-solid fa-folder-open text-3xl mb-3 block"></i>
+                            Brakut utworzonych imprez w bazie. Utwórz pierwszą po lewej stronie!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generated Details Modal/Card -->
+                <div id="result-card" class="hidden bg-gradient-to-br from-brand-50 to-pink-50 border border-brand-200 rounded-3xl p-6 sm:p-8 shadow-xl">
+                    <h3 class="font-gliker text-xl text-slate-900 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-brand-600"></i> Wygenerowano pomyślnie!
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div class="flex flex-col items-center justify-center bg-white p-4 rounded-2xl shadow-inner border border-slate-200">
+                            <div id="qrcode" class="mb-3"></div>
+                            <span class="text-xs font-mono text-slate-500">Kod QR dla gości</span>
+                            <button onclick="downloadQR()" class="mt-2 text-xs font-bold text-brand-600 hover:underline"><i class="fa-solid fa-download"></i> Pobierz QR obrazek</button>
+                        </div>
+
+                        <div class="space-y-4 text-sm">
+                            <div>
+                                <span class="block text-xs font-bold text-slate-500 uppercase">Link dla gości (do ramki / QR):</span>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <input type="text" id="res-guest-url" readonly class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono select-all">
+                                    <button onclick="copyToClipboard('res-guest-url')" class="bg-white border border-slate-200 p-2.5 rounded-xl hover:bg-slate-50"><i class="fa-solid fa-copy text-brand-600"></i></button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <span class="block text-xs font-bold text-slate-500 uppercase">Panel Solenizanta:</span>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <input type="text" id="res-host-url" readonly class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono select-all">
+                                    <button onclick="copyToClipboard('res-host-url')" class="bg-white border border-slate-200 p-2.5 rounded-xl hover:bg-slate-50"><i class="fa-solid fa-copy text-brand-600"></i></button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <span class="block text-xs font-bold text-slate-500 uppercase">Hasło dostępu dla Solenizanta:</span>
+                                <div class="font-mono font-bold text-brand-700 bg-white/80 border border-brand-200 px-3 py-2 rounded-xl mt-1 text-base" id="res-host-pass">---</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200/80 py-8 text-slate-500 text-sm mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <img src="https://memories18.vercel.app/files-content/logo_rakso_szerokie.svg" alt="RAKSO" class="h-8 w-auto object-contain">
+            <p class="text-xs text-slate-400">Memories18 Admin Panel &copy; 2026 RAKSO Web Development.</p>
+        </div>
+    </footer>
+
+    <script>
+        let supabaseClient = null;
+
+        // AUTOMATYCZNIE WPISANE DANE SUPABASE (możesz je tutaj podmienić)
+        const DEFAULT_SUPABASE_URL = 'https://exislasbcahoacmqhpaf.supabase.co';
+        const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4aXNsYXNiY2Fob2FjbXFocGFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0OTMzNDksImV4cCI6MjEwNjA2OTM0OX0.71P6ArRLyDg3AJdCCKXIgaUBI2wawBTRYYxh36Iq5yY';
+
+        // Auto load saved config or environment defaults on startup
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUrl = localStorage.getItem('mem_supa_url') || DEFAULT_SUPABASE_URL;
+            const savedKey = localStorage.getItem('mem_supa_key') || DEFAULT_SUPABASE_KEY;
+            
+            document.getElementById('supa-url').value = savedUrl;
+            document.getElementById('supa-key').value = savedKey;
+            
+            if (savedUrl && savedKey && !savedUrl.includes('YOUR_SUPABASE_URL')) {
+                initSupabase(savedUrl, savedKey);
+            }
+        });
+
+        function saveSupabaseConfig() {
+            const url = document.getElementById('supa-url').value.trim();
+            const key = document.getElementById('supa-key').value.trim();
+            if (!url || !key) {
+                alert('Podaj poprawny URL oraz klucz Supabase!');
+                return;
+            }
+            localStorage.setItem('mem_supa_url', url);
+            localStorage.setItem('mem_supa_key', key);
+            initSupabase(url, key);
+        }
+
+        function initSupabase(url, key) {
+            try {
+                supabaseClient = window.supabase.createClient(url, key);
+                document.getElementById('config-banner').classList.add('hidden');
+                document.getElementById('auth-status').innerHTML = '<span class="inline-flex items-center gap-2 text-emerald-600 font-semibold"><i class="fa-solid fa-circle-check"></i> Połączono z Supabase</span>';
+                loadEvents();
+            } catch (err) {
+                console.error(err);
+                alert('Błąd inicjalizacji Supabase. Sprawdź dane.');
+            }
+        }
+
+        async function loadEvents() {
+            if (!supabaseClient) return;
+            const { data, error } = await supabaseClient.from('memories_events').select('*').order('created_at', { ascending: false });
+            if (error) {
+                console.error(error);
+                document.getElementById('events-list').innerHTML = `<div class="text-center text-red-500 py-6 text-sm">Błąd pobierania imprez. Sprawdź strukturę tabeli SQL.</div>`;
+                return;
+            }
+
+            document.getElementById('events-count.textContent') // safety
+            const countEl = document.getElementById('events-count');
+            if(countEl) countEl.textContent = `${data.length} aktywnych`;
+
+            const listEl = document.getElementById('events-list');
+            if (data.length === 0) {
+                listEl.innerHTML = `<div class="text-center py-12 text-slate-400 text-sm"><i class="fa-solid fa-folder-open text-3xl mb-3 block"></i>Brak utworzonych imprez w bazie.</div>`;
+                return;
+            }
+
+            let html = '';
+            data.forEach(ev => {
+                const deadlineDate = new Date(ev.deadline);
+                const isExpired = new Date() > deadlineDate;
+                const origin = window.location.origin;
+                // Determine base path depending on whether hosted on root or subfolder
+                const pathPrefix = window.location.pathname.includes('/super-admin-panel-xd') ? window.location.pathname.replace('/super-admin-panel-xd/index.html', '') : '';
+                const guestLink = `${origin}${pathPrefix}/memories/guest.html?id=${ev.id}`;
+                const hostLink = `${origin}${pathPrefix}/memories/host.html?id=${ev.id}`;
+
+                html += `
+                    <div class="bg-[#faf8fc] border border-slate-200/80 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <h3 class="font-gliker text-lg text-slate-900">${ev.title}</h3>
+                            <div class="text-xs text-slate-500 mt-1 space-y-0.5">
+                                <p><i class="fa-regular fa-clock mr-1"></i> Koniec: ${deadlineDate.toLocaleString('pl-PL')} ${isExpired ? '<span class="text-red-500 font-bold">(Wygasło)</span>' : '<span class="text-emerald-600 font-bold">(Aktywne)</span>'}</p>
+                                <p><i class="fa-solid fa-key mr-1"></i> Hasło solenizanta: <strong class="text-slate-700">${ev.password}</strong></p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button onclick="showEventDetails('${ev.id}', '${ev.title}', '${ev.password}', '${guestLink}', '${hostLink}')" class="bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl hover:bg-slate-50 shadow-xs">
+                                <i class="fa-solid fa-qrcode mr-1 text-brand-600"></i> QR i Linki
+                            </button>
+                            <button onclick="deleteEvent('${ev.id}')" class="bg-red-50 text-red-600 text-xs font-bold p-2 rounded-xl hover:bg-red-100" title="Usuń imprezę">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            listEl.innerHTML = html;
+        }
+
+        async function handleCreateEvent(e) {
+            e.preventDefault();
+            if (!supabaseClient) {
+                alert('Najpierw skonfiguruj połączenie z Supabase!');
+                return;
+            }
+
+            const title = document.getElementById('event-title').value.trim();
+            const deadline = document.getElementById('event-deadline').value;
+            const password = document.getElementById('event-password').value.trim();
+            const eventId = 'mem_' + Math.random().toString(36).substring(2, 10);
+
+            const { error } = await supabaseClient.from('memories_events').insert([
+                { id: eventId, title, deadline, password }
+            ]);
+
+            if (error) {
+                console.error(error);
+                alert('Błąd podczas zapisywania imprezy w bazie: ' + error.message);
+                return;
+            }
+
+            document.getElementById('create-event-form').reset();
+            loadEvents();
+
+            const origin = window.location.origin;
+            const pathPrefix = window.location.pathname.includes('/super-admin-panel-xd') ? window.location.pathname.replace('/super-admin-panel-xd/index.html', '') : '';
+            const guestLink = `${origin}${pathPrefix}/memories/guest.html?id=${eventId}`;
+            const hostLink = `${origin}${pathPrefix}/memories/host.html?id=${eventId}`;
+
+            showEventDetails(eventId, title, password, guestLink, hostLink);
+        }
+
+        function showEventDetails(id, title, password, guestLink, hostLink) {
+            document.getElementById('result-card').classList.remove('hidden');
+            document.getElementById('res-guest-url').value = guestLink;
+            document.getElementById('res-host-url').value = hostLink;
+            document.getElementById('res-host-pass').textContent = password;
+
+            // Generate QR
+            const qrcodeEl = document.getElementById('qrcode');
+            qrcodeEl.innerHTML = '';
+            new QRCode(qrcodeEl, {
+                text: guestLink,
+                width: 160,
+                height: 160,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('result-card').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function downloadQR() {
+            const img = document.querySelector('#qrcode img') || document.querySelector('#qrcode canvas');
+            if (!img) return;
+            const link = document.createElement('a');
+            link.download = 'memories18-qr.png';
+            link.href = img.src || img.toDataURL();
+            link.click();
+        }
+
+        function copyToClipboard(elementId) {
+            const input = document.getElementById(elementId);
+            input.select();
+            document.execCommand('copy');
+            alert('Skopiowano do schowka!');
+        }
+
+        async function deleteEvent(id) {
+            if (!confirm('Czy na pewno chcesz usunąć tę imprezę oraz powiązane zdjęcia?')) return;
+            // Delete event (and cascade photos if foreign key is set up)
+            await supabaseClient.from('memories_photos').delete().eq('event_id', id);
+            const { error } = await supabaseClient.from('memories_events').delete().eq('id', id);
+            if (error) {
+                alert('Błąd usuwania: ' + error.message);
+                return;
+            }
+            loadEvents();
+            document.getElementById('result-card').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
