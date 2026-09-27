@@ -389,10 +389,10 @@
                     borderWidth: 0.75,
                 });
 
-                // 1. Logo na górze (bez napisu pod spodem)
-                const logoDims = logoImage.scale(0.32);
+                // 1. POWIĘKSZONE LOGO NA GÓRZE (skala 0.44 zamiast 0.32)
+                const logoDims = logoImage.scale(0.44);
                 const logoX = (width - logoDims.width) / 2;
-                const logoY = cardY + cardHeight - 85;
+                const logoY = cardY + cardHeight - 95;
                 page.drawImage(logoImage, {
                     x: logoX,
                     y: logoY,
@@ -400,9 +400,9 @@
                     height: logoDims.height,
                 });
 
-                // 2. Tytuł imprezy (wielolinijkowy, wycentrowany, obsługujący polskie znaki)
+                // 2. POWIĘKSZONY TYTUŁ IMPREZY (czcionka 30pt zamiast 24pt)
                 const titleText = (activeEventForPDF.title || "").toUpperCase();
-                const titleFontSize = 24;
+                const titleFontSize = 30;
                 const maxLineWidth = cardWidth - 60;
                 
                 const words = titleText.split(' ');
@@ -421,24 +421,24 @@
                 });
                 if (currentLine) lines.push(currentLine);
 
-                let currentTitleY = logoY - 45;
+                let currentTitleY = logoY - 55;
                 lines.forEach((line, index) => {
                     const lineWidth = fontBlack.widthOfTextAtSize(line, titleFontSize);
                     page.drawText(line, {
                         x: (width - lineWidth) / 2,
-                        y: currentTitleY - (index * (titleFontSize + 6)),
+                        y: currentTitleY - (index * (titleFontSize + 8)),
                         size: titleFontSize,
                         font: fontBlack,
                         color: rgb(0.12, 0.11, 0.10),
                     });
                 });
 
-                const totalTitleHeight = lines.length * (titleFontSize + 6);
-                const afterTitleY = currentTitleY - totalTitleHeight - 12;
+                const totalTitleHeight = lines.length * (titleFontSize + 8);
+                const afterTitleY = currentTitleY - totalTitleHeight - 14;
 
-                // 3. Instrukcja pod tytułem („Zeskanuj kod QR, aby dodać zdjęcia z imprezy!”)
+                // 3. POWIĘKSZONA INSTRUKCJA POD TYTUŁEM (czcionka 12.5pt zamiast 10.5pt)
                 const instructionText = "Zeskanuj kod QR, aby dodać zdjęcia z imprezy!";
-                const instructionFontSize = 10.5;
+                const instructionFontSize = 12.5;
                 const instructionWidth = fontMedium.widthOfTextAtSize(instructionText, instructionFontSize);
                 page.drawText(instructionText, {
                     x: (width - instructionWidth) / 2,
@@ -448,12 +448,12 @@
                     color: rgb(0.35, 0.34, 0.32),
                 });
 
-                // 4. Kod QR na środku
+                // 4. DUŻY KOD QR NA ŚRODKU (wysoka rozdzielczość 400x400, rozmiar wizualny 295x295)
                 const tempDiv = document.createElement('div');
                 new QRCode(tempDiv, {
                     text: activeEventForPDF.guestLink,
-                    width: 320,
-                    height: 320,
+                    width: 400,
+                    height: 400,
                     colorDark: "#1c1917",
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.H
@@ -461,16 +461,16 @@
                 
                 await new Promise(resolve => setTimeout(resolve, 50));
                 const qrCanvas = tempDiv.querySelector('canvas');
-                let qrBottomY = afterTitleY - 280;
+                let qrBottomY = afterTitleY - 320;
 
                 if (qrCanvas) {
                     const qrDataUri = qrCanvas.toDataURL('image/png');
                     const qrImageBytes = await fetch(qrDataUri).then(res => res.arrayBuffer());
                     const qrImage = await pdfDoc.embedPng(qrImageBytes);
 
-                    const qrSize = 250;
+                    const qrSize = 295;
                     const qrX = (width - qrSize) / 2;
-                    const qrY = afterTitleY - 265;
+                    const qrY = afterTitleY - 310;
 
                     page.drawImage(qrImage, {
                         x: qrX,
@@ -482,29 +482,29 @@
                     qrBottomY = qrY;
                 }
 
-                // 5. Link tekstowy pod kodem QR
+                // 5. POWIĘKSZONY LINK TEKSTOWY POD KODEM QR (czcionka 9.5pt zamiast 8pt)
                 const linkText = activeEventForPDF.guestLink;
-                const linkFontSize = 8;
+                const linkFontSize = 9.5;
                 const linkWidth = fontLight.widthOfTextAtSize(linkText, linkFontSize);
                 page.drawText(linkText, {
                     x: (width - linkWidth) / 2,
-                    y: qrBottomY - 18,
+                    y: qrBottomY - 22,
                     size: linkFontSize,
                     font: fontLight,
                     color: rgb(0.50, 0.49, 0.47),
                 });
 
-                // 6. Sekcja dolna: DODAJ KADR oraz slogan (idealnie wycentrowane pod linkiem)
+                // 6. SEKCJA DOLNA: POWIĘKSZONE "DODAJ KADR" ORAZ SLOGAN (idealnie wycentrowane pod linkiem)
                 const actionText = "DODAJ KADR";
-                const actionFontSize = 26;
+                const actionFontSize = 30;
                 const actionWidth = fontBlack.widthOfTextAtSize(actionText, actionFontSize);
                 
                 const footerText = "Stwórzmy razem piękne wspomnienia.";
-                const footerFontSize = 10;
+                const footerFontSize = 12;
                 const footerWidth = fontMedium.widthOfTextAtSize(footerText, footerFontSize);
 
                 // Rozmieszczenie elementów dolnych symetrycznie nad dolną krawędzią ramki
-                const baseBottomY = cardY + 35;
+                const baseBottomY = cardY + 32;
                 
                 page.drawText(footerText, {
                     x: (width - footerWidth) / 2,
@@ -516,7 +516,7 @@
 
                 page.drawText(actionText, {
                     x: (width - actionWidth) / 2,
-                    y: baseBottomY + 22,
+                    y: baseBottomY + 26,
                     size: actionFontSize,
                     font: fontBlack,
                     color: rgb(0.12, 0.11, 0.10),
