@@ -344,17 +344,23 @@
                 const { PDFDocument, rgb } = PDFLib;
                 const pdfDoc = await PDFDocument.create();
 
-                const lightFontBytes = await fetch('https://memories18.pages.dev/files-content/engram-warsaw-light.ttf').then(res => res.arrayBuffer());
-                const mediumFontBytes = await fetch('https://memories18.pages.dev/files-content/engram-warsaw-medium.ttf').then(res => res.arrayBuffer());
-                const blackFontBytes = await fetch('https://memories18.pages.dev/files-content/engram-warsaw-black.ttf').then(res => res.arrayBuffer());
+                // Pobieranie czcionek oraz nowego logo PNG
+                const [lightFontBytes, mediumFontBytes, blackFontBytes, logoImageBytes] = await Promise.all([
+                    fetch('https://memories18.pages.dev/files-content/engram-warsaw-light.ttf').then(res => res.arrayBuffer()),
+                    fetch('https://memories18.pages.dev/files-content/engram-warsaw-medium.ttf').then(res => res.arrayBuffer()),
+                    fetch('https://memories18.pages.dev/files-content/engram-warsaw-black.ttf').then(res => res.arrayBuffer()),
+                    fetch('https://memories18.pages.dev/files-content/memories18_logo.png').then(res => res.arrayBuffer())
+                ]);
 
                 const engramLight = await pdfDoc.embedFont(lightFontBytes);
                 const engramMedium = await pdfDoc.embedFont(mediumFontBytes);
                 const engramBlack = await pdfDoc.embedFont(blackFontBytes);
+                const logoImage = await pdfDoc.embedPng(logoImageBytes);
                 
                 const page = pdfDoc.addPage([595.28, 841.89]);
                 const { width, height } = page.getSize();
 
+                // Tło strony
                 page.drawRectangle({
                     x: 0,
                     y: 0,
@@ -368,6 +374,7 @@
                 const cardX = (width - cardWidth) / 2;
                 const cardY = (height - cardHeight) / 2;
 
+                // Kartka / ramka wizytówki
                 page.drawRectangle({
                     x: cardX,
                     y: cardY,
@@ -378,15 +385,63 @@
                     borderWidth: 1,
                 });
 
-                const qrCanvas = document.querySelector('#qrcode canvas');
+                // Rysowanie nowego logo PNG na górze karty
+                const logoDims = logoImage.scale(0.35);
+                const logoX = (width - logoDims.width) / 2;
+                const logoY = cardY + cardHeight - 110;
+                page.drawImage(logoImage, {
+                    x: logoX,
+                    y: logoY,
+                    width: logoDims.width,
+                    height: logoDims.height,
+                });
+
+                // Tytuł imprezy pod logo
+                const titleText = sanitizeText(activeEventForPDF.title).toUpperCase();
+                const titleFontSize = 15;
+                const titleWidth = engramMedium.widthOfTextAtSize(titleText, titleFontSize);
+                page.drawText(titleText, {
+                    x: (width - titleWidth) / 2,
+                    y: logoY - 35,
+                    size: titleFontSize,
+                    font: engramMedium,
+                    color: rgb(0.12, 0.11, 0.10),
+                });
+
+                // Podpis pod tytułem
+                const subText = sanitizeText("Zeskanuj kod, aby dodać zdjęcia z imprezy!");
+                const subFontSize = 10;
+                const subWidth = engramLight.widthOfTextAtSize(subText, subFontSize);
+                page.drawText(subText, {
+                    x: (width - subWidth) / 2,
+                    y: logoY - 55,
+                    size: subFontSize,
+                    font: engramLight,
+                    color: rgb(0.45, 0.44, 0.42),
+                });
+
+                // Generowanie kodu QR za pomocą qrcodejs do pliku graficznego i osadzenie w PDF
+                const tempDiv = document.createElement('div');
+                new QRCode(tempDiv, {
+                    text: activeEventForPDF.guestLink,
+                    width: 300,
+                    height: 300,
+                    colorDark: "#1c1917",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+                
+                // Krótkie opóźnienie na render QR canvas
+                await new Promise(resolve => setTimeout(resolve, 50));
+                const qrCanvas = tempDiv.querySelector('canvas');
                 if (qrCanvas) {
                     const qrDataUri = qrCanvas.toDataURL('image/png');
-                    const qrImageBytes = await fetch(qrDataUri).then((res) => res.arrayBuffer());
+                    const qrImageBytes = await fetch(qrDataUri).then(res => res.arrayBuffer());
                     const qrImage = await pdfDoc.embedPng(qrImageBytes);
 
                     const qrSize = 220;
                     const qrX = (width - qrSize) / 2;
-                    const qrY = cardY + 240;
+                    const qrY = cardY + 220;
 
                     page.drawImage(qrImage, {
                         x: qrX,
@@ -396,41 +451,21 @@
                     });
                 }
 
-                const titleText = sanitizeText(activeEventForPDF.title).toUpperCase();
-                const titleFontSize = 16;
-                const titleWidth = engramMedium.widthOfTextAtSize(titleText, titleFontSize);
-                page.drawText(titleText, {
-                    x: (width - titleWidth) / 2,
-                    y: cardY + cardHeight - 65,
-                    size: titleFontSize,
-                    font: engramMedium,
-                    color: rgb(0.12, 0.11, 0.10),
-                });
-
-                const subText = sanitizeText("Zeskanuj kod, aby dodać zdjęcia z imprezy!");
-                const subFontSize = 11;
-                const subWidth = engramLight.widthOfTextAtSize(subText, subFontSize);
-                page.drawText(subText, {
-                    x: (width - subWidth) / 2,
-                    y: cardY + cardHeight - 90,
-                    size: subFontSize,
-                    font: engramLight,
-                    color: rgb(0.45, 0.44, 0.42),
-                });
-
+                // Link tekstowy na dole
                 const linkText = activeEventForPDF.guestLink;
-                const linkFontSize = 9;
+                const linkFontSize = 8.5;
                 const linkWidth = engramLight.widthOfTextAtSize(linkText, linkFontSize);
                 page.drawText(linkText, {
                     x: (width - linkWidth) / 2,
-                    y: cardY + 210,
+                    y: cardY + 190,
                     size: linkFontSize,
                     font: engramLight,
                     color: rgb(0.40, 0.40, 0.40),
                 });
 
+                // Duży napis akcji na dole
                 const bigActionText = "DODAJ KADR";
-                const bigFontSize = 32;
+                const bigFontSize = 30;
                 const bigActionWidth = engramBlack.widthOfTextAtSize(bigActionText, bigFontSize);
                 page.drawText(bigActionText, {
                     x: (width - bigActionWidth) / 2,
@@ -440,8 +475,9 @@
                     color: rgb(0.12, 0.11, 0.10),
                 });
 
+                // Slogan
                 const hintText = sanitizeText("Uwiecznij te chwile razem z nami ✨");
-                const hintFontSize = 11;
+                const hintFontSize = 10.5;
                 const hintWidth = engramLight.widthOfTextAtSize(hintText, hintFontSize);
                 page.drawText(hintText, {
                     x: (width - hintWidth) / 2,
@@ -451,6 +487,7 @@
                     color: rgb(0.55, 0.54, 0.52),
                 });
 
+                // Zapisz dokument
                 const pdfBytes = await pdfDoc.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 const link = document.createElement('a');
@@ -460,7 +497,7 @@
 
             } catch (err) {
                 console.error("Błąd generowania PDF:", err);
-                alert("Wystąpił błąd podczas generowania pliku PDF.");
+                alert("Wystąpił błąd podczas generowania pliku PDF: " + err.message);
             }
         }
 
