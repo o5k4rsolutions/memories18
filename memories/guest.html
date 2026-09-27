@@ -39,81 +39,91 @@
     <style>
         .font-loubag { font-family: 'Cinzel', serif; letter-spacing: -0.02em; }
         .font-gliker { font-family: 'Outfit', sans-serif; font-weight: 800; }
+
+        @keyframes fillHeart {
+            0% { color: #cbd5e1; transform: scale(0.9); }
+            50% { transform: scale(1.1); }
+            100% { color: #ef4444; transform: scale(1); }
+        }
+
+        .animate-fill-heart {
+            animation: fillHeart 1s ease-in-out forwards;
+        }
     </style>
 </head>
 <body class="bg-[#faf8fc] text-slate-800 font-sans antialiased min-h-screen flex flex-col justify-between">
 
-    <header class="sticky top-0 z-50 backdrop-blur-md bg-white/90 border-b border-slate-200/60 shadow-xs">
-        <div class="max-w-4xl mx-auto px-4 h-24 flex items-center justify-center">
-            <img src="https://memories18.vercel.app/files-content/memories18_logo.svg" alt="Memories18" class="h-16 w-auto object-contain">
+    <header class="sticky top-0 z-50 backdrop-blur-md bg-white/90 border-b border-slate-200 shadow-xs">
+        <div class="max-w-4xl mx-auto px-4 h-20 flex items-center justify-center">
+            <img src="https://memories18.vercel.app/files-content/memories18_logo.svg" alt="Memories18" class="h-12 w-auto object-contain">
         </div>
     </header>
 
-    <main class="flex-grow max-w-xl mx-auto px-4 py-12 w-full">
+    <main class="flex-grow max-w-lg mx-auto px-4 py-10 w-full">
         <div id="loading-view" class="text-center py-20">
-            <i class="fa-solid fa-spinner fa-spin text-4xl text-brand-600 mb-4"></i>
-            <p class="text-slate-600 font-medium">Ładowanie wydarzenia...</p>
+            <i class="fa-solid fa-spinner fa-spin text-3xl text-brand-600 mb-4"></i>
+            <p class="text-slate-600 font-medium text-sm">Ładowanie wydarzenia...</p>
         </div>
 
-        <div id="expired-view" class="hidden bg-white border border-red-200 rounded-3xl p-8 shadow-xl text-center">
-            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
-                <p><i class="fa-solid fa-lock"></i></p>
+        <div id="expired-view" class="hidden bg-white border border-red-200 rounded-lg p-8 shadow-sm text-center">
+            <div class="w-12 h-12 bg-red-50 text-red-600 rounded-lg flex items-center justify-center text-xl mx-auto mb-4">
+                <i class="fa-solid fa-lock"></i>
             </div>
-            <h1 class="font-gliker text-2xl text-slate-900 mb-2">Czas na dodawanie zdjęć minął!</h1>
+            <h1 class="font-gliker text-xl text-slate-900 mb-2">Czas na dodawanie zdjęć minął!</h1>
             <p class="text-slate-600 text-sm">Przewidziany czas na wrzucanie wspomnień z tej imprezy dobiegł końca. Dziękujemy za wszystkie cudowne chwile!</p>
         </div>
 
-        <div id="upload-view" class="hidden bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-10 shadow-xl">
-            <div class="text-center mb-8">
-                <span class="bg-brand-50 text-brand-600 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Księga Wspomnień</span>
-                <h1 id="event-title-display" class="font-gliker text-2xl sm:text-3xl text-slate-900 mt-2">Impreza</h1>
+        <div id="upload-view" class="hidden bg-white border border-slate-200 rounded-lg p-6 sm:p-8 shadow-sm">
+            <div class="text-center mb-6">
+                <span class="bg-brand-50 text-brand-600 text-xs font-bold px-2.5 py-1 rounded uppercase tracking-wider">Księga Wspomnień</span>
+                <h1 id="event-title-display" class="font-gliker text-2xl text-slate-900 mt-2">Impreza</h1>
                 <p class="text-slate-500 text-sm mt-1">Zostaw swoje wspomnienie! Dodaj zdjęcie i podpis.</p>
             </div>
 
-            <form id="photo-form" onsubmit="handleUploadPhoto(event)" class="space-y-6">
+            <form id="photo-form" onsubmit="handleUploadPhoto(event)" class="space-y-5">
                 <!-- Image Picker / Camera input -->
-                <div class="relative border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-brand-500 transition-colors bg-[#faf8fc] cursor-pointer" onclick="document.getElementById('photo-input').click()">
+                <div class="relative border-2 border-dashed border-slate-300 rounded-lg p-5 text-center hover:border-brand-500 transition-colors bg-slate-50/50 cursor-pointer" onclick="document.getElementById('photo-input').click()">
                     <input type="file" id="photo-input" accept="image/*" required class="hidden" onchange="previewImage(event)">
                     <div id="upload-placeholder">
-                        <div class="w-16 h-16 bg-brand-500/10 text-brand-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3">
+                        <div class="w-12 h-12 bg-brand-500/10 text-brand-600 rounded-lg flex items-center justify-center text-xl mx-auto mb-3">
                             <i class="fa-solid fa-camera"></i>
                         </div>
                         <span class="font-bold text-slate-800 block text-sm">Kliknij, aby zrobić lub wybrać zdjęcie</span>
                         <span class="text-xs text-slate-400 mt-1 block">Dozwolone aparaty w telefonach i pliki z galerii</span>
                     </div>
                     <div id="upload-preview-container" class="hidden relative">
-                        <img id="image-preview" src="" alt="Podgląd" class="max-h-64 mx-auto rounded-xl object-contain shadow-md">
-                        <span class="absolute top-2 right-2 bg-black/60 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur-md">Zmień zdjęcie</span>
+                        <img id="image-preview" src="" alt="Podgląd" class="max-h-60 mx-auto rounded object-contain shadow-sm">
+                        <span class="absolute top-2 right-2 bg-black/70 text-white text-xs px-2.5 py-1 rounded">Zmień zdjęcie</span>
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Twój podpis / ksywka / życzenia (opcjonalnie)</label>
-                    <input type="text" id="photo-author" maxlength="60" placeholder="np. Ekipa z Poznania lub Ola i Janek" class="w-full bg-[#faf8fc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <input type="text" id="photo-author" maxlength="60" placeholder="np. Ekipa z Poznania lub Ola i Janek" class="w-full bg-slate-50/50 border border-slate-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500">
                 </div>
 
-                <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-brand-600 to-pink-600 text-white font-bold py-4 px-6 rounded-2xl shadow-xl shadow-brand-500/25 hover:shadow-brand-500/40 hover:-translate-y-0.5 transition-all font-gliker text-base flex items-center justify-center gap-2">
+                <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-brand-600 to-pink-600 text-white font-bold py-3 px-6 rounded shadow-sm hover:opacity-95 transition-all font-gliker text-sm flex items-center justify-center gap-2">
                     <i class="fa-solid fa-cloud-arrow-up"></i> Wyślij wspomnienie
                 </button>
             </form>
         </div>
 
-        <div id="success-view" class="hidden bg-white border border-emerald-200 rounded-3xl p-8 shadow-xl text-center">
-            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner animate-bounce">
-                <i class="fa-solid fa-heart"></i>
+        <div id="success-view" class="hidden bg-white border border-slate-200 rounded-lg p-8 shadow-sm text-center">
+            <div class="w-16 h-16 bg-slate-50 rounded-lg flex items-center justify-center text-3xl mx-auto mb-5 border border-slate-100">
+                <i class="fa-solid fa-heart text-slate-300 animate-fill-heart"></i>
             </div>
-            <h2 class="font-gliker text-3xl text-slate-900 mb-2">Wspomnienie dodane!</h2>
-            <p class="text-slate-600 text-base mb-8">Twoje zdjęcie zostało pomyślnie przesłane do pamiątkowej księgi.</p>
-            <button onclick="resetForm()" class="bg-slate-100 text-slate-700 font-bold px-6 py-3 rounded-xl hover:bg-slate-200 transition-all text-sm font-gliker">
+            <h2 class="font-gliker text-2xl text-slate-900 mb-2">Wspomnienie dodane!</h2>
+            <p class="text-slate-600 text-sm mb-6">Twoje zdjęcie zostało pomyślnie przesłane do pamiątkowej księgi.</p>
+            <button onclick="resetForm()" class="bg-slate-100 text-slate-700 font-bold px-5 py-2.5 rounded hover:bg-slate-200 transition-all text-xs font-gliker">
                 Wyślij kolejne zdjęcie
             </button>
         </div>
     </main>
 
-    <footer class="bg-white border-t border-slate-200/80 py-8 text-slate-500 text-sm mt-12">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <img src="https://memories18.vercel.app/files-content/logo_rakso_szerokie.svg" alt="RAKSO" class="h-8 w-auto object-contain mx-auto mb-2">
-            <p class="text-xs text-slate-400">Memories18 &copy; 2026 RAKSO Web Development.</p>
+    <footer class="bg-white border-t border-slate-200 py-6 text-slate-500 text-xs mt-10">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <img src="https://memories18.vercel.app/files-content/logo_rakso_szerokie.svg" alt="RAKSO" class="h-6 w-auto object-contain mx-auto mb-2">
+            <p class="text-slate-400">Memories18 &copy; 2026 RAKSO Web Development.</p>
         </div>
     </footer>
 
@@ -123,7 +133,6 @@
         let currentEventData = null;
         let supabaseClient = null;
 
-        // AUTOMATYCZNIE WPISANE DANE SUPABASE
         const DEFAULT_SUPABASE_URL = 'https://exislasbcahoacmqhpaf.supabase.co';
         const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4aXNsYXNiY2Fob2FjbXFocGFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0OTMzNDksImV4cCI6MjEwNjA2OTM0OX0.71P6ArRLyDg3AJdCCKXIgaUBI2wawBTRYYxh36Iq5yY';
 
@@ -138,7 +147,7 @@
             }
 
             if (!eventId) {
-                document.getElementById('loading-view').innerHTML = `<p class="text-red-500 font-bold">Brak ID imprezy w adresie URL!</p>`;
+                document.getElementById('loading-view').innerHTML = `<p class="text-red-500 font-bold text-sm">Brak ID imprezy w adresie URL!</p>`;
                 return;
             }
 
@@ -152,7 +161,7 @@
 
             if (error || !data) {
                 document.getElementById('loading-view').classList.remove('hidden');
-                document.getElementById('loading-view').innerHTML = `<p class="text-red-500 font-bold">Nie znaleziono takiej imprezy w bazie danych.</p>`;
+                document.getElementById('loading-view').innerHTML = `<p class="text-red-500 font-bold text-sm">Nie znaleziono takiej imprezy w bazie danych.</p>`;
                 return;
             }
 
@@ -198,26 +207,21 @@
             const fileName = `${eventId}_${Date.now()}.${fileExt}`;
             const filePath = `uploads/${fileName}`;
 
-            // Upload image to Supabase Storage bucket 'memories_bucket'
-            // NOTE: Ensure 'memories_bucket' bucket is created in Supabase Storage and set to public
             const { data: uploadData, error: uploadError } = await supabaseClient.storage
                 .from('memories_bucket')
                 .upload(filePath, file);
 
             if (uploadError) {
                 console.error(uploadError);
-                alert('Błąd przesyłania pliku do storage: ' + uploadError.message + '\n(Upewnij się, że w Supabase utworzono publiczny bucket o nazwie "memories_bucket")');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Wyślij wspomnienie`;
                 return;
             }
 
-            // Get public URL
             const { data: { publicUrl } } = supabaseClient.storage
                 .from('memories_bucket')
                 .getPublicUrl(filePath);
 
-            // Save record in database table 'memories_photos'
             const { error: dbError } = await supabaseClient.from('memories_photos').insert([
                 {
                     event_id: eventId,
@@ -228,7 +232,6 @@
 
             if (dbError) {
                 console.error(dbError);
-                alert('Błąd zapisu rekordu w bazie: ' + dbError.message);
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Wyślij wspomnienie`;
                 return;
