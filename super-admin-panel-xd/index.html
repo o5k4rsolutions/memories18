@@ -7,11 +7,13 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- QRCode Generator library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- pdf-lib for PDF generation -->
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
@@ -21,140 +23,135 @@
                     fontFamily: {
                         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
                         heading: ['Outfit', 'sans-serif'],
-                        loubag: ['Cinzel', 'serif'],
-                        gliker: ['Outfit', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#fdf4f8',
-                            100: '#fbe8f2',
-                            500: '#d946ef',
-                            600: '#c026d3',
-                            700: '#a21caf',
-                            900: '#701a75',
-                        }
+                        handwriting: ['Caveat', 'cursive'],
                     }
                 }
             }
         }
     </script>
-    <style>
-        .font-loubag { font-family: 'Cinzel', serif; letter-spacing: -0.02em; }
-        .font-gliker { font-family: 'Outfit', sans-serif; font-weight: 800; }
-    </style>
 </head>
-<body class="bg-[#faf8fc] text-slate-800 font-sans antialiased min-h-screen flex flex-col justify-between">
+<body class="bg-[#f6f5f2] text-stone-800 font-sans antialiased min-h-screen flex flex-col justify-between selection:bg-amber-200">
 
-    <header class="sticky top-0 z-50 backdrop-blur-md bg-white/90 border-b border-slate-200/60 shadow-xs">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <img src="https://memories18.pages.dev/files-content/memories18_logo.svg" alt="Memories18 Logo" class="h-10 w-auto object-contain">
-                <span class="bg-brand-500/10 text-brand-600 font-gliker text-xs px-3 py-1 rounded-full uppercase tracking-wider">Super Admin</span>
-            </div>
-            <div id="auth-status" class="text-sm font-medium text-slate-600">
-                <span class="inline-flex items-center gap-2"><i class="fa-solid fa-circle text-amber-500 text-xs"></i> Konfiguracja Supabase wymagana</span>
-            </div>
+    <!-- Elegancki nagłówek -->
+    <header class="py-6 px-6 max-w-7xl mx-auto w-full flex items-center justify-between relative">
+        <div class="flex items-center gap-2">
+            <span class="bg-stone-200/80 text-stone-700 font-heading text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Super Admin</span>
+        </div>
+        <div class="absolute left-1/2 -translate-x-1/2">
+            <img src="https://memories18.pages.dev/files-content/memories18_logo.svg" alt="Memories18 Logo" class="h-14 w-auto object-contain">
+        </div>
+        <div id="auth-status" class="text-xs font-medium text-stone-500">
+            <span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-circle text-amber-500 text-[10px]"></i> Konfiguracja wymagana</span>
         </div>
     </header>
 
-    <main class="flex-grow max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+    <main class="flex-grow max-w-6xl mx-auto px-5 py-8 w-full">
         
-        <!-- Config Setup Modal/Banner if keys are missing -->
-        <div id="config-banner" class="mb-8 bg-amber-50 border border-amber-200 rounded-3xl p-6 shadow-sm">
-            <h2 class="font-gliker text-xl text-amber-900 mb-2"><i class="fa-solid fa-triangle-exclamation text-amber-600 mr-2"></i> Konfiguracja Supabase</h2>
-            <p class="text-amber-800 text-sm mb-4">Aby panel działał poprawnie z bazą danych, podaj swoje klucze Supabase.</p>
+        <!-- Baner konfiguracyjny Supabase -->
+        <div id="config-banner" class="mb-8 bg-white border border-stone-200 rounded-2xl p-6 shadow-sm">
+            <h2 class="font-heading font-bold text-lg text-stone-900 mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Konfiguracja Supabase
+            </h2>
+            <p class="text-stone-500 text-xs mb-4">Podaj swoje dane uwierzytelniające bazę danych, aby aktywować panel.</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
-                    <label class="block text-xs font-semibold text-amber-900 mb-1">Supabase URL</label>
-                    <input type="text" id="supa-url" placeholder="https://xyz.supabase.co" class="w-full bg-white border border-amber-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-[11px] font-heading font-semibold text-stone-700 uppercase mb-1">Supabase URL</label>
+                    <input type="text" id="supa-url" placeholder="https://xyz.supabase.co" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-xs text-stone-800 focus:outline-none focus:border-stone-900 font-mono">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-amber-900 mb-1">Supabase Anon Key</label>
-                    <input type="password" id="supa-key" placeholder="eyJhbGciOi..." class="w-full bg-white border border-amber-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <label class="block text-[11px] font-heading font-semibold text-stone-700 uppercase mb-1">Supabase Anon Key</label>
+                    <input type="password" id="supa-key" placeholder="eyJhbGciOi..." class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-xs text-stone-800 focus:outline-none focus:border-stone-900 font-mono">
                 </div>
             </div>
-            <button onclick="saveSupabaseConfig()" class="bg-amber-600 text-white font-bold text-sm px-6 py-2.5 rounded-xl hover:bg-amber-700 transition-all shadow-md">
+            <button onclick="saveSupabaseConfig()" class="bg-stone-900 hover:bg-stone-800 text-white font-heading font-semibold text-xs px-5 py-2.5 rounded-xl transition-all shadow-sm">
                 Zapisz i połącz
             </button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Form to Create New Memory Event -->
-            <div class="lg:col-span-1 bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xl">
-                <h1 class="font-gliker text-2xl text-slate-900 mb-2">Utwórz nową imprezę</h1>
-                <p class="text-slate-500 text-sm mb-6">Wypełnij dane, aby wygenerować kod QR dla gości oraz hasło dla solenizanta.</p>
+            <!-- Formularz tworzenia imprezy -->
+            <div class="lg:col-span-1 bg-white border border-stone-200/80 rounded-2xl p-6 sm:p-8 shadow-sm">
+                <h1 class="font-heading font-bold text-xl text-stone-900 mb-1">Utwórz nową imprezę</h1>
+                <p class="text-stone-500 text-xs mb-6 leading-relaxed">Wprowadź dane wydarzenia, aby wygenerować kody, linki oraz plik PDF dla gości.</p>
 
                 <form id="create-event-form" onsubmit="handleCreateEvent(event)" class="space-y-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tytuł imprezy (np. 18-tka Julki)</label>
-                        <input type="text" id="event-title" required placeholder="np. Osiemnastka Kasi" class="w-full bg-[#faf8fc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <label class="block text-[11px] font-heading font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Tytuł imprezy</label>
+                        <input type="text" id="event-title" required placeholder="np. 18-tka Julki" class="w-full bg-stone-50/50 border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 focus:outline-none focus:border-stone-900">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Koniec przyjmowania zdjęć</label>
-                        <input type="datetime-local" id="event-deadline" required class="w-full bg-[#faf8fc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <label class="block text-[11px] font-heading font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Koniec przyjmowania zdjęć</label>
+                        <input type="datetime-local" id="event-deadline" required class="w-full bg-stone-50/50 border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 focus:outline-none focus:border-stone-900">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Hasło dla Solenizanta (do podglądu)</label>
-                        <input type="text" id="event-password" required placeholder="np. julka18lat" class="w-full bg-[#faf8fc] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <label class="block text-[11px] font-heading font-semibold text-stone-700 uppercase tracking-wider mb-1.5">Hasło dla Solenizanta</label>
+                        <input type="text" id="event-password" required placeholder="np. julka18lat" class="w-full bg-stone-50/50 border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 focus:outline-none focus:border-stone-900">
                     </div>
 
-                    <button type="submit" class="w-full bg-gradient-to-r from-brand-600 to-pink-600 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 hover:-translate-y-0.5 transition-all font-gliker text-sm flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-qrcode"></i> Generuj QR i Linki
+                    <button type="submit" class="w-full bg-stone-900 hover:bg-stone-800 text-white font-heading font-semibold py-3.5 px-6 rounded-xl shadow-sm transition-all text-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Utwórz i generuj materiały
                     </button>
                 </form>
             </div>
 
-            <!-- List of Created Events & Output Details -->
+            <!-- Lista imprez i szczegóły -->
             <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xl">
-                    <h2 class="font-gliker text-xl text-slate-900 mb-4 flex items-center justify-between">
-                        <span>Aktywne Imprezy / Ramki</span>
-                        <span id="events-count" class="text-xs font-normal bg-brand-50 text-brand-600 px-3 py-1 rounded-full">0 aktywnych</span>
-                    </h2>
+                <div class="bg-white border border-stone-200/80 rounded-2xl p-6 sm:p-8 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="font-heading font-bold text-lg text-stone-900">Aktywne Imprezy</h2>
+                        <span id="events-count" class="text-xs font-heading font-semibold bg-stone-100 text-stone-600 px-3 py-1 rounded-full">0 aktywnych</span>
+                    </div>
 
-                    <div id="events-list" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                        <div class="text-center py-12 text-slate-400 text-sm">
-                            <i class="fa-solid fa-folder-open text-3xl mb-3 block"></i>
-                            Brak utworzonych imprez w bazie. Utwórz pierwszą po lewej stronie!
+                    <div id="events-list" class="space-y-3 max-h-[480px] overflow-y-auto pr-1">
+                        <div class="text-center py-12 text-stone-400 text-xs">
+                            <i class="fa-regular fa-folder-open text-2xl mb-2 block text-stone-300"></i>
+                            Brak utworzonych imprez w bazie.
                         </div>
                     </div>
                 </div>
 
-                <!-- Generated Details Card -->
-                <div id="result-card" class="hidden bg-gradient-to-br from-brand-50 to-pink-50 border border-brand-200 rounded-3xl p-6 sm:p-8 shadow-xl">
-                    <h3 class="font-gliker text-xl text-slate-900 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-circle-check text-brand-600"></i> Wygenerowano pomyślnie!
-                    </h3>
+                <!-- Karta wygenerowanych szczegółów / podgląd -->
+                <div id="result-card" class="hidden bg-white border border-stone-200/80 rounded-2xl p-6 sm:p-8 shadow-sm">
+                    <div class="flex items-center justify-between mb-6 pb-4 border-b border-stone-100">
+                        <h3 class="font-heading font-bold text-base text-stone-900 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check text-emerald-600"></i> Gotowe do druku / udostępnienia
+                        </h3>
+                        <button onclick="generatePDF()" class="bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-heading font-semibold px-4 py-2.5 rounded-xl transition-all shadow-xs flex items-center gap-2">
+                            <i class="fa-solid fa-file-pdf text-amber-700"></i> Pobierz plik PDF (A4)
+                        </button>
+                    </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                        <div class="flex flex-col items-center justify-center bg-white p-4 rounded-2xl shadow-inner border border-slate-200">
-                            <div id="qrcode" class="mb-3"></div>
-                            <span class="text-xs font-mono text-slate-500">Kod QR dla gości</span>
-                            <button onclick="downloadQR()" class="mt-2 text-xs font-bold text-brand-600 hover:underline"><i class="fa-solid fa-download"></i> Pobierz QR obrazek</button>
+                        <div class="flex flex-col items-center justify-center bg-stone-50 p-6 rounded-xl border border-stone-200/60 text-center">
+                            <div id="qrcode" class="mb-3 bg-white p-2 rounded-lg shadow-xs"></div>
+                            <span class="text-[11px] font-mono text-stone-400">Kod QR dla gości</span>
+                            <button onclick="downloadQRImage()" class="mt-2 text-xs font-heading font-semibold text-stone-700 hover:underline">
+                                <i class="fa-solid fa-download mr-1"></i> Pobierz sam QR (PNG)
+                            </button>
                         </div>
 
-                        <div class="space-y-4 text-sm">
+                        <div class="space-y-4 text-xs">
                             <div>
-                                <span class="block text-xs font-bold text-slate-500 uppercase">Link dla gości (do ramki / QR):</span>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <input type="text" id="res-guest-url" readonly class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono select-all">
-                                    <button onclick="copyToClipboard('res-guest-url')" class="bg-white border border-slate-200 p-2.5 rounded-xl hover:bg-slate-50"><i class="fa-solid fa-copy text-brand-600"></i></button>
+                                <span class="block font-heading font-semibold text-stone-400 uppercase text-[10px] tracking-wider mb-1">Link dla gości (do ramki / QR):</span>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" id="res-guest-url" readonly class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 font-mono text-stone-600 select-all">
+                                    <button onclick="copyToClipboard('res-guest-url')" class="bg-stone-100 hover:bg-stone-200 text-stone-700 p-2.5 rounded-xl transition-colors" title="Kopiuj"><i class="fa-regular fa-copy"></i></button>
                                 </div>
                             </div>
 
                             <div>
-                                <span class="block text-xs font-bold text-slate-500 uppercase">Panel Solenizanta:</span>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <input type="text" id="res-host-url" readonly class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono select-all">
-                                    <button onclick="copyToClipboard('res-host-url')" class="bg-white border border-slate-200 p-2.5 rounded-xl hover:bg-slate-50"><i class="fa-solid fa-copy text-brand-600"></i></button>
+                                <span class="block font-heading font-semibold text-stone-400 uppercase text-[10px] tracking-wider mb-1">Panel Solenizanta:</span>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" id="res-host-url" readonly class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 font-mono text-stone-600 select-all">
+                                    <button onclick="copyToClipboard('res-host-url')" class="bg-stone-100 hover:bg-stone-200 text-stone-700 p-2.5 rounded-xl transition-colors" title="Kopiuj"><i class="fa-regular fa-copy"></i></button>
                                 </div>
                             </div>
 
                             <div>
-                                <span class="block text-xs font-bold text-slate-500 uppercase">Hasło dostępu dla Solenizanta:</span>
-                                <div class="font-mono font-bold text-brand-700 bg-white/80 border border-brand-200 px-3 py-2 rounded-xl mt-1 text-base" id="res-host-pass">---</div>
+                                <span class="block font-heading font-semibold text-stone-400 uppercase text-[10px] tracking-wider mb-1">Hasło dla Solenizanta:</span>
+                                <div class="font-mono font-bold text-stone-900 bg-stone-50 border border-stone-200 px-3 py-2 rounded-xl text-sm" id="res-host-pass">---</div>
                             </div>
                         </div>
                     </div>
@@ -163,15 +160,13 @@
         </div>
     </main>
 
-    <footer class="bg-white border-t border-slate-200/80 py-8 text-slate-500 text-sm mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <img src="https://memories18.pages.dev/files-content/logo_rakso_szerokie.svg" alt="RAKSO" class="h-8 w-auto object-contain">
-            <p class="text-xs text-slate-400">Memories18 Admin Panel &copy; 2026 RAKSO Web Development.</p>
-        </div>
+    <footer class="py-6 text-stone-400 text-xs text-center mt-12">
+        <p>Memories18 Admin Panel &copy; 2026 RAKSO Web Development</p>
     </footer>
 
     <script>
         let supabaseClient = null;
+        let activeEventForPDF = null;
 
         const DEFAULT_SUPABASE_URL = 'https://exislasbcahoacmqhpaf.supabase.co';
         const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4aXNsYXNiY2Fob2FjbXFocGFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0OTMzNDksImV4cCI6MjEwNjA2OTM0OX0.71P6ArRLyDg3AJdCCKXIgaUBI2wawBTRYYxh36Iq5yY';
@@ -204,7 +199,7 @@
             try {
                 supabaseClient = window.supabase.createClient(url, key);
                 document.getElementById('config-banner').classList.add('hidden');
-                document.getElementById('auth-status').innerHTML = '<span class="inline-flex items-center gap-2 text-emerald-600 font-semibold"><i class="fa-solid fa-circle-check"></i> Połączono z Supabase</span>';
+                document.getElementById('auth-status').innerHTML = '<span class="inline-flex items-center gap-1.5 text-emerald-600 font-semibold"><i class="fa-solid fa-circle text-[10px]"></i> Połączono</span>';
                 loadEvents();
             } catch (err) {
                 console.error(err);
@@ -216,7 +211,7 @@
             const { data, error } = await supabaseClient.from('memories_events').select('*').order('created_at', { ascending: false });
             if (error) {
                 console.error(error);
-                document.getElementById('events-list').innerHTML = `<div class="text-center text-red-500 py-6 text-sm">Błąd pobierania imprez. Sprawdź strukturę tabeli SQL.</div>`;
+                document.getElementById('events-list').innerHTML = `<div class="text-center text-rose-600 py-4 text-xs font-medium">Błąd pobierania imprez.</div>`;
                 return;
             }
 
@@ -225,7 +220,7 @@
 
             const listEl = document.getElementById('events-list');
             if (data.length === 0) {
-                listEl.innerHTML = `<div class="text-center py-12 text-slate-400 text-sm"><i class="fa-solid fa-folder-open text-3xl mb-3 block"></i>Brak utworzonych imprez w bazie.</div>`;
+                listEl.innerHTML = `<div class="text-center py-12 text-stone-400 text-xs"><i class="fa-regular fa-folder-open text-2xl mb-2 block text-stone-300"></i>Brak utworzonych imprez w bazie.</div>`;
                 return;
             }
 
@@ -238,20 +233,23 @@
                 const guestLink = `${origin}${pathPrefix}/memories/guest.html?id=${ev.id}`;
                 const hostLink = `${origin}${pathPrefix}/memories/host.html?id=${ev.id}`;
 
+                // Escaping data strings safely for inline function call
+                const safeTitle = ev.title.replace(/'/g, "\\'");
+
                 html += `
-                    <div class="bg-[#faf8fc] border border-slate-200/80 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div class="bg-stone-50/70 border border-stone-200/80 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div>
-                            <h3 class="font-gliker text-lg text-slate-900">${ev.title}</h3>
-                            <div class="text-xs text-slate-500 mt-1 space-y-0.5">
-                                <p><i class="fa-regular fa-clock mr-1"></i> Koniec: ${deadlineDate.toLocaleString('pl-PL')} ${isExpired ? '<span class="text-red-500 font-bold">(Wygasło)</span>' : '<span class="text-emerald-600 font-bold">(Aktywne)</span>'}</p>
-                                <p><i class="fa-solid fa-key mr-1"></i> Hasło solenizanta: <strong class="text-slate-700">${ev.password}</strong></p>
+                            <h3 class="font-heading font-bold text-sm text-stone-900">${ev.title}</h3>
+                            <div class="text-[11px] text-stone-500 mt-0.5 space-y-0.5">
+                                <p><i class="fa-regular fa-clock mr-1"></i> Koniec: ${deadlineDate.toLocaleString('pl-PL')} ${isExpired ? '<span class="text-rose-600 font-semibold">(Wygasło)</span>' : '<span class="text-emerald-600 font-semibold">(Aktywne)</span>'}</p>
+                                <p><i class="fa-solid fa-key mr-1"></i> Hasło: <strong class="text-stone-700">${ev.password}</strong></p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <button onclick="showEventDetails('${ev.id}', '${ev.title}', '${ev.password}', '${guestLink}', '${hostLink}')" class="bg-white border border-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl hover:bg-slate-50 shadow-xs">
-                                <i class="fa-solid fa-qrcode mr-1 text-brand-600"></i> QR i Linki
+                            <button onclick="showEventDetails('${ev.id}', '${safeTitle}', '${ev.password}', '${guestLink}', '${hostLink}')" class="bg-white border border-stone-200 text-stone-700 text-xs font-heading font-semibold px-3 py-2 rounded-xl hover:bg-stone-100 shadow-xs transition-colors">
+                                <i class="fa-solid fa-qrcode mr-1 text-stone-500"></i> Podgląd i PDF
                             </button>
-                            <button onclick="deleteEvent('${ev.id}')" class="bg-red-50 text-red-600 text-xs font-bold p-2 rounded-xl hover:bg-red-100" title="Usuń imprezę">
+                            <button onclick="deleteEvent('${ev.id}')" class="bg-rose-50 text-rose-600 text-xs p-2 rounded-xl hover:bg-rose-100 transition-colors" title="Usuń imprezę">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -279,7 +277,7 @@
 
             if (error) {
                 console.error(error);
-                alert('Błąd podczas zapisywania imprezy w bazie: ' + error.message);
+                alert('Błąd podczas zapisywania imprezy: ' + error.message);
                 return;
             }
 
@@ -295,6 +293,8 @@
         }
 
         function showEventDetails(id, title, password, guestLink, hostLink) {
+            activeEventForPDF = { id, title, password, guestLink, hostLink };
+
             document.getElementById('result-card').classList.remove('hidden');
             document.getElementById('res-guest-url').value = guestLink;
             document.getElementById('res-host-url').value = hostLink;
@@ -304,9 +304,9 @@
             qrcodeEl.innerHTML = '';
             new QRCode(qrcodeEl, {
                 text: guestLink,
-                width: 160,
-                height: 160,
-                colorDark: "#000000",
+                width: 150,
+                height: 150,
+                colorDark: "#1c1917",
                 colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
             });
@@ -314,13 +314,152 @@
             document.getElementById('result-card').scrollIntoView({ behavior: 'smooth' });
         }
 
-        function downloadQR() {
+        function downloadQRImage() {
             const img = document.querySelector('#qrcode img') || document.querySelector('#qrcode canvas');
             if (!img) return;
             const link = document.createElement('a');
             link.download = 'memories18-qr.png';
             link.href = img.src || img.toDataURL();
             link.click();
+        }
+
+        // Generowanie profesjonalnego pliku PDF A4 za pomocą pdf-lib
+        async function generatePDF() {
+            if (!activeEventForPDF) return;
+
+            try {
+                const { PDFDocument, rgb } = PDFLib;
+                const pdfDoc = await PDFDocument.create();
+                
+                // Format A4 w punktach (595.28 x 841.89)
+                const page = pdfDoc.addPage([595.28, 841.89]);
+                const { width, height } = page.getSize();
+
+                // Pobranie czarno-białego lub wektorowego logo jako obrazu PNG przez fetch (SVG bezpośrednio nie jest renderowane przez pdf-lib)
+                // W celach demonstracyjnych konwertujemy SVG logo na canvas lub pobieramy gotowe PNG/raster
+                const logoUrl = 'https://memories18.pages.dev/files-content/memories18_logo.svg';
+                
+                // Rysowanie tła w stylu strony (#f6f5f2)
+                page.drawRectangle({
+                    x: 0,
+                    y: 0,
+                    width: width,
+                    height: height,
+                    color: rgb(0.96, 0.96, 0.95),
+                });
+
+                // Biała karta na środku strony A4 (np. szerokość 460, wysokość 720)
+                const cardWidth = 470;
+                const cardHeight = 740;
+                const cardX = (width - cardWidth) / 2;
+                const cardY = (height - cardHeight) / 2;
+
+                page.drawRectangle({
+                    x: cardX,
+                    y: cardY,
+                    width: cardWidth,
+                    height: cardHeight,
+                    color: rgb(1, 1, 1),
+                    borderColor: rgb(0.88, 0.87, 0.85),
+                    borderWidth: 1,
+                });
+
+                // Pobranie obrazu kodu QR z wygenerowanego elementu <canvas> lub <img>
+                const qrCanvas = document.querySelector('#qrcode canvas');
+                if (qrCanvas) {
+                    const qrDataUri = qrCanvas.toDataURL('image/png');
+                    const qrImageBytes = await fetch(qrDataUri).then((res) => res.arrayBuffer());
+                    const qrImage = await pdfDoc.embedPng(qrImageBytes);
+
+                    // Rozmiar i pozycja kodu QR na stronie PDF
+                    const qrSize = 220;
+                    const qrX = (width - qrSize) / 2;
+                    const qrY = cardY + 240;
+
+                    page.drawImage(qrImage, {
+                        x: qrX,
+                        y: qrY,
+                        width: qrSize,
+                        height: qrSize,
+                    });
+                }
+
+                // Pobieramy standardowy krój czcionki wbudowany w pdf-lib
+                const fontBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+                const fontRegular = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+
+                // 1. Tytuł imprezy pod górną krawędzią karty
+                const titleText = activeEventForPDF.title.toUpperCase();
+                const titleFontSize = 16;
+                const titleWidth = fontBold.widthOfTextAtSize(titleText, titleFontSize);
+                page.drawText(titleText, {
+                    x: (width - titleWidth) / 2,
+                    y: cardY + cardHeight - 65,
+                    size: titleFontSize,
+                    font: fontBold,
+                    color: rgb(0.12, 0.11, 0.10),
+                });
+
+                // Podtytuł
+                const subText = "Zeskanuj kod, aby dodać zdjęcia z imprezy!";
+                const subFontSize = 11;
+                const subWidth = fontRegular.widthOfTextAtSize(subText, subFontSize);
+                page.drawText(subText, {
+                    x: (width - subWidth) / 2,
+                    y: cardY + cardHeight - 90,
+                    size: subFontSize,
+                    font: fontRegular,
+                    color: rgb(0.45, 0.44, 0.42),
+                });
+
+                // 2. Link tekstowy pod kodem QR
+                const linkText = activeEventForPDF.guestLink;
+                const linkFontSize = 9;
+                const linkWidth = fontRegular.widthOfTextAtSize(linkText, linkFontSize);
+                page.drawText(linkText, {
+                    x: (width - linkWidth) / 2,
+                    y: cardY + 210,
+                    size: linkFontSize,
+                    font: fontRegular,
+                    color: rgb(0.40, 0.40, 0.40),
+                });
+
+                // 3. Wielki napis na samym dole: "DODAJ KADR"
+                const bigActionText = "DODAJ KADR";
+                const bigFontSize = 32;
+                const bigActionWidth = fontBold.widthOfTextAtSize(bigActionText, bigFontSize);
+                page.drawText(bigActionText, {
+                    x: (width - bigActionWidth) / 2,
+                    y: cardY + 70,
+                    size: bigFontSize,
+                    font: fontBold,
+                    color: rgb(0.12, 0.11, 0.10),
+                });
+
+                // Dodanie małego tekstu zachęty pod napisem
+                const hintText = "Uwiecznij te chwile razem z nami ✨";
+                const hintFontSize = 11;
+                const hintWidth = fontRegular.widthOfTextAtSize(hintText, hintFontSize);
+                page.drawText(hintText, {
+                    x: (width - hintWidth) / 2,
+                    y: cardY + 45,
+                    size: hintFontSize,
+                    font: fontRegular,
+                    color: rgb(0.55, 0.54, 0.52),
+                });
+
+                // Zapisanie pliku PDF i wywołanie pobierania w przeglądarce
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `Memories18_${activeEventForPDF.id}.pdf`;
+                link.click();
+
+            } catch (err) {
+                console.error("Błąd generowania PDF:", err);
+                alert("Wystąpił błąd podczas generowania pliku PDF.");
+            }
         }
 
         function copyToClipboard(elementId) {
