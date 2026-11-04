@@ -16,6 +16,7 @@ html,body{height:100%}
 body{font-family:var(--body);color:var(--ink);background:var(--paper);line-height:1.6;font-size:17px;display:flex;flex-direction:column;min-height:100vh}
 a{color:inherit}
 :focus-visible{outline:3px solid var(--green-deep);outline-offset:3px;border-radius:4px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
 header{padding:18px 24px;max-width:1120px;width:100%;margin:0 auto}
 header img{height:44px;width:auto;display:block}
 main{flex:1;display:grid;grid-template-columns:auto 1fr;gap:64px;align-items:center;max-width:960px;width:100%;margin:0 auto;padding:32px 24px 64px}
@@ -31,10 +32,22 @@ p.lead{color:var(--ink-soft);font-size:1.15rem;max-width:30em;margin-bottom:30px
 .btn.ghost:hover{background:var(--ink);color:#fff}
 .hint{margin-top:26px;font-size:.93rem;color:var(--ink-soft)}
 .hint a{color:var(--green-deep);font-weight:600}
-footer{background:#121211;color:#8a8b82;font-size:.85rem;padding:22px 24px;text-align:center}
-footer a{text-decoration:none}
-footer a:hover{color:#fff;text-decoration:underline}
-@media(max-width:760px){main{grid-template-columns:1fr;gap:36px;text-align:center;justify-items:center}.cta{justify-content:center}p.lead{margin-left:auto;margin-right:auto}}
+
+/* stopka */
+footer{background:#121211;color:#b4b5ab;padding:56px 0 32px;font-size:.93rem}
+.f-top{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:40px;padding-bottom:36px;border-bottom:1px solid #2c2c29}
+.f-top h4{color:#fff;font-family:var(--head);font-size:1.02rem;margin-bottom:12px}
+.f-top ul{list-style:none}
+.f-top li{margin-bottom:8px}
+.f-top a{text-decoration:none}
+.f-top a:hover{color:#fff;text-decoration:underline}
+.f-brand img.m{height:40px;display:block;margin-bottom:16px}
+.owner{display:flex;align-items:center;gap:14px;margin-top:18px}
+.owner img{height:30px;width:auto;display:block;filter:brightness(0) invert(1);opacity:.9}
+.f-legal{padding-top:26px;font-size:.84rem;line-height:1.7;color:#8a8b82}
+.f-legal p+p{margin-top:10px}
+
+@media(max-width:760px){main{grid-template-columns:1fr;gap:36px;text-align:center;justify-items:center}.cta{justify-content:center}p.lead{margin-left:auto;margin-right:auto}.f-top{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -96,7 +109,6 @@ footer a:hover{color:#fff;text-decoration:underline}
     </div>
   </div>
 </footer>
-
 
 </body>
 </html>
